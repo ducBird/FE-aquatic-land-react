@@ -8,8 +8,10 @@ import { IoIosGitCompare } from "react-icons/io";
 import Navbar from "./Navbar";
 import NavPage from "./Subnav/NavPage";
 import Cart from "../../../components/Cart";
+import LoginCart from "../../Auth/Login/LoginCart";
 
 export default function Header() {
+  const [openLogin, setOpenLogin] = React.useState(false);
   const [openMenu, setOpenMenu] = useState(false);
   const [openCart, setOpenCart] = useState(false);
   const [windowSize, setWindowSize] = useState({
@@ -23,7 +25,9 @@ export default function Header() {
   const handleCart = () => {
     setOpenCart(true);
   };
-
+  const handleLogin = () => {
+    setOpenLogin(true);
+  };
   useEffect(() => {
     const handleSize = () => {
       setWindowSize({
@@ -69,7 +73,9 @@ export default function Header() {
               </a>
             </div>
             {/* If screen desktop -> component NavPage (Home, Shop, Service,...) */}
-            {!isMobile && <NavPage isMobile={isMobile} />}
+            {!isMobile && (
+              <NavPage isMobile={isMobile} setOpenMenu={setOpenMenu} />
+            )}
             {/* If screen mobile -> icon search, login, cart, whitelist */}
             {isMobile ? (
               <div className={`flex justify-end flex-1`}>
@@ -94,7 +100,10 @@ export default function Header() {
                     <BiSearchAlt size={24} />
                   </span>
                 </a>
-                <a className="flex justify-center items-center h-[40px] leading-none px-[10px] text-gray-800 cursor-pointer">
+                <a
+                  onClick={handleLogin}
+                  className="flex justify-center items-center h-[40px] leading-none px-[10px] text-gray-800 cursor-pointer"
+                >
                   <span className="relative flex item-center justify-center">
                     <RxPerson size={24} />
                   </span>
@@ -138,6 +147,7 @@ export default function Header() {
         isMobile={isMobile}
       />
       <Cart openCart={openCart} setOpenCart={setOpenCart} />
+      <LoginCart openLogin={openLogin} setOpenLogin={setOpenLogin} />
     </main>
   );
 }

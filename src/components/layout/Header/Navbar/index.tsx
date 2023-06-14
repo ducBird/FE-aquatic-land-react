@@ -52,7 +52,7 @@ const Navbar = (props: Props) => {
         onClick={handleClose}
       ></div>
       <div
-        className={`fixed h-screen z-[100] w-[calc(100%-6rem)] bg-white border-r shadow-xl transition-transform duration-500 ${
+        className={`fixed h-screen z-[21] w-[calc(100%-6rem)] bg-white border-r shadow-xl transition-transform duration-500 ${
           openMenu ? `translate-x-0` : `-translate-x-full`
         } left-0`}
       >
@@ -100,11 +100,11 @@ const Navbar = (props: Props) => {
             <div
               className={`absolute bottom-0 h-1 w-1/2 bg-primary_green transition-all duration-300 ${
                 showMenuPage ? `translate-x-0` : `-translate-x-full`
-              } ${showMenuCategories ? `translate-x-full` : `-translate-x-0`}`}
+              } ${showMenuCategories ? `translate-x-full` : `translate-x-0`}`}
             ></div>
           </div>
           {showMenuPage ? (
-            <NavPage isMobile={isMobile} />
+            <NavPage isMobile={isMobile} setOpenMenu={setOpenMenu} />
           ) : (
             <NavCategories categories={categories} />
           )}
