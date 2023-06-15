@@ -22,6 +22,9 @@ export default function Header() {
   const handleMenu = () => {
     setOpenMenu(true);
   };
+  const closeNavbar = () => {
+    setOpenMenu(false);
+  };
   const handleCart = () => {
     setOpenCart(true);
   };
@@ -74,7 +77,11 @@ export default function Header() {
             </div>
             {/* If screen desktop -> component NavPage (Home, Shop, Service,...) */}
             {!isMobile && (
-              <NavPage isMobile={isMobile} setOpenMenu={setOpenMenu} />
+              <NavPage
+                isMobile={isMobile}
+                setOpenMenu={setOpenMenu}
+                closeNavbar={closeNavbar}
+              />
             )}
             {/* If screen mobile -> icon search, login, cart, whitelist */}
             {isMobile ? (
@@ -145,6 +152,7 @@ export default function Header() {
         openMenu={openMenu}
         setOpenMenu={setOpenMenu}
         isMobile={isMobile}
+        closeNavbar={closeNavbar}
       />
       <Cart openCart={openCart} setOpenCart={setOpenCart} />
       <LoginCart openLogin={openLogin} setOpenLogin={setOpenLogin} />

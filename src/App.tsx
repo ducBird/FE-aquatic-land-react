@@ -6,6 +6,9 @@ import CheckOut from "./components/CheckCart/CheckOut";
 import Register from "./components/Auth/Register";
 import Footer from "./components/layout/Footer";
 import FooterTool from "./components/layout/FooterToolbar";
+import Home from "./components/layout/Home";
+import Shop from "./components/layout/Shop";
+import ProductDetail from "./components/layout/ProductDetail";
 function App() {
   return (
     // <main className="font-roboto relative overfnlow-hidde">
@@ -21,8 +24,9 @@ function App() {
             </div>
           </main>
         </header>
-        <section style={{ marginTop: "70px" }}>
+        <section style={{ marginTop: "62px" }}>
           <Routes>
+            <Route path="/" element={<Home />} />
             <Route
               path="/component/checkcart/shoppingcart"
               element={<ShoppingCart />}
@@ -32,6 +36,14 @@ function App() {
               element={<CheckOut />}
             />
             <Route path="/component/auth/register" element={<Register />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/product/:id" element={<ProductDetail />} />
+            <Route path="/product-category/:categoryId" element={<Shop />} />
+            <Route
+              path="/product-category/:categoryId/sub/:subCategoryId"
+              element={<Shop />}
+            />
+
             <Route
               path="*"
               element={

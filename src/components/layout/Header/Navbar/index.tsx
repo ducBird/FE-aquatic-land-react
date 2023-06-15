@@ -10,10 +10,11 @@ interface Props {
   openMenu: boolean;
   isMobile: boolean;
   setOpenMenu: React.Dispatch<React.SetStateAction<boolean>>;
+  closeNavbar: () => void;
 }
 
 const Navbar = (props: Props) => {
-  const { openMenu, setOpenMenu, isMobile } = props;
+  const { openMenu, setOpenMenu, isMobile, closeNavbar } = props;
   const [showMenuPage, setShowMenuPage] = useState(true);
   const [showMenuCategories, setShowMenuCategories] = useState(false);
   const [categories, setCategories] = useState<ICategory[]>([]);
@@ -104,7 +105,11 @@ const Navbar = (props: Props) => {
             ></div>
           </div>
           {showMenuPage ? (
-            <NavPage isMobile={isMobile} setOpenMenu={setOpenMenu} />
+            <NavPage
+              isMobile={isMobile}
+              setOpenMenu={setOpenMenu}
+              closeNavbar={closeNavbar}
+            />
           ) : (
             <NavCategories categories={categories} />
           )}
