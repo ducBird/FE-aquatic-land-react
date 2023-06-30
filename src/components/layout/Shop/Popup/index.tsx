@@ -1,7 +1,8 @@
-import { axiosClient } from "../../../libraries/axiosClient";
+import { axiosClient } from "../../../../libraries/axiosClient";
 import React, { useEffect, useState } from "react";
 import { MdOutlineClose } from "react-icons/md";
 import ReactModal from "react-modal";
+import { IProduct } from "../../../../interfaces/IProducts";
 // Thiết lập các style cho modal
 const customStyles = {
   overlay: {
@@ -21,17 +22,11 @@ const customStyles = {
 };
 
 interface IModalProps {
-  productId: string;
+  productId: string | undefined;
   showPopup: boolean;
   closePopup: () => void;
 }
-interface IProduct {
-  _id: string;
-  category_id: string;
-  sub_category_id: string;
-  name: string;
-  product_image: string;
-}
+
 const Popup: React.FC<IModalProps> = ({ closePopup, showPopup, productId }) => {
   const [product, setProduct] = useState<IProduct | null>(null);
   useEffect(() => {

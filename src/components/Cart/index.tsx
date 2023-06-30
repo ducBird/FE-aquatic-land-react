@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { MdOutlineClose } from "react-icons/md";
+import { MdOutlineClose, MdProductionQuantityLimits } from "react-icons/md";
 import { BsFillCartXFill } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
-
+import { useCarts } from "../../hooks/useCart";
+import numeral from "numeral";
+import "./index.css";
 interface Props {
   openCart: boolean;
   setOpenCart: React.Dispatch<React.SetStateAction<boolean>>;
@@ -14,7 +16,12 @@ const Cart = (props: Props) => {
   const handleCloseCart = () => {
     setOpenCart(false);
   };
-  const [products, setProducts] = React.useState(true);
+  const [products, setProducts] = useState(true);
+  const { items, remove } = useCarts((state) => state);
+
+  const totalOrder = items.reduce((total, item) => {
+    return total + item.product.total * item.quantity;
+  }, 0);
   return (
     <div>
       <div
@@ -45,51 +52,85 @@ const Cart = (props: Props) => {
         {products ? (
           <div className=" h-[100vh] mb-5">
             <div className="h-[65vh] border-b">
-              <ul className="">
-                <li className="border-b">
-                  <div className="flex justify-between py-3 px-2">
-                    <div className="">
-                      <img
-                        className="w-[80px]"
-                        src="	https://easyscape.co.za/wp-content/uploads/2020/11/Micranthemum-Monte-Carlo.png"
-                        alt=""
-                      />
-                    </div>
-                    <div className="max-w-[180px] md:max-w-[220px] leading-[25px]">
-                      <h2 className="font-medium leading-[20px]">
-                        Micranthemum sp ‘Monte Carlo’
-                      </h2>
-                      <p className="text-primary_green text-[13px] ">
-                        only 4 left
-                      </p>
-                      <span className="flex items-center">
-                        1
-                        <AiOutlineClose size={10} />
-                        <span className="text-primary_green">R58</span>
-                      </span>
-                    </div>
-                    <span className="cursor-pointer text-[20px]">
-                      <AiOutlineClose />
-                    </span>
+              {items.length > 0 ? (
+                <ul className="h-full overflow-y-auto scrollbar">
+                  {items.length > 0 &&
+                    items.map((item, index) => {
+                      return (
+                        <li className="border-b " key={index}>
+                          <div className="relative flex py-3 px-2 h-auto">
+                            <div className="">
+                              <img
+                                className="w-[80px] h-[80px] object-contain"
+                                src={item.product.product_image}
+                                alt=""
+                              />
+                            </div>
+                            <div className="max-w-[180px] md:max-w-[220px] leading-[25px] ml-5">
+                              <h2 className="font-medium leading-[20px]">
+                                {item.product.name}
+                              </h2>
+                              <p className="text-primary_green text-[13px] ">
+                                only 4 left
+                              </p>
+                              <span className="flex items-center">
+                                {item.quantity}
+                                <AiOutlineClose size={10} />
+
+                                <span className="text-primary_green">
+                                  {numeral(item.product?.total)
+                                    .format("0,0")
+                                    .replace(/,/g, ".")}
+                                </span>
+                              </span>
+                            </div>
+                            <button
+                              className="absolute top-1 right-2 cursor-pointer text-[20px] text-red-500"
+                              onClick={() => remove(item.product._id)}
+                            >
+                              <AiOutlineClose size={15} />
+                            </button>
+                          </div>
+                        </li>
+                      );
+                    })}
+                </ul>
+              ) : (
+                <div className="w-full text-center p-5">
+                  <div className="text-gray-200 flex items-center justify-center">
+                    <MdProductionQuantityLimits size={100} />
                   </div>
-                </li>
-              </ul>
+                  <p className="my-4 font-bold">No product in the basket</p>
+                  <Link to="/shop">
+                    <button
+                      className="bg-primary_green rounded-full"
+                      onClick={() => handleCloseCart()}
+                    >
+                      <p className="px-5 py-2 text-white">RETURN TO SHOP</p>
+                    </button>
+                  </Link>
+                </div>
+              )}
             </div>
             <div className="h-[35vh] py-3 px-6">
               <div className="flex justify-between">
                 <span className="text-[20px] font-bold">Subtotal:</span>
-                <span className="text-[20px]">R388</span>
+                <span className="text-[20px]">
+                  {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
+                </span>
               </div>
               <div className="flex flex-col mt-4 gap-4">
                 <Link
                   className="bg-primary_green py-2 rounded-[20px] text-white hover:opacity-[0.9] text-center"
                   to={"/component/checkcart/shoppingcart"}
+                  onClick={() => handleCloseCart()}
                 >
                   <button>VIEW BASKET</button>
                 </Link>
                 <Link
                   to={"/component/checkcart/checkout"}
                   className="bg-primary_green py-2 rounded-[20px] text-white hover:opacity-[0.9] text-center"
+                  onClick={() => handleCloseCart()}
                 >
                   <button>CHECKOUT</button>
                 </Link>

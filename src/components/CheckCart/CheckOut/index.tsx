@@ -7,9 +7,15 @@ import { BiMedal } from "react-icons/bi";
 import { RiSecurePaymentFill } from "react-icons/ri";
 import { TbTruckDelivery } from "react-icons/tb";
 import { axiosClient } from "../../../libraries/axiosClient";
+import { useCarts } from "../../../hooks/useCart";
+import numeral from "numeral";
 interface typeCity {
   id: string;
   city: string;
+}
+interface IOrderDetails {
+  product_id: string;
+  quantity: number;
 }
 const ordersSchema = Yup.object({
   first_name: Yup.string()
@@ -25,12 +31,17 @@ const ordersSchema = Yup.object({
   phoneNumber: Yup.string()
     .matches(/^(0|\+84)[3|5|7|8|9][0-9]{8}$/, "Số điện thoại không hợp lệ")
     .required("The phone is not blank"),
-  email: Yup.string().email("Invalid email"),
+  email: Yup.string().email("Invalid email").required("The email is not blank"),
   shipping_city: Yup.string().required("The city is not blank"),
 });
 const CheckOut = () => {
   // const [isLocation, setIsLocation] = React.useState<string>("");
   // const [isCity, setIsCity] = React.useState<string>("");
+  // zustand
+  const { items } = useCarts((state) => state);
+  const totalOrder = items.reduce((total, item) => {
+    return total + item.product.total * item.quantity;
+  }, 0);
   const formik = useFormik({
     initialValues: {
       first_name: "",
@@ -39,15 +50,24 @@ const CheckOut = () => {
       phoneNumber: "",
       email: "",
       shipping_city: "",
+      order_details: [] as IOrderDetails[],
     },
     validationSchema: ordersSchema,
-    onSubmit: (values) => {
-      axiosClient
-        .post("/orders", values)
-        .then((response) => {
+    onSubmit: async (values) => {
+      values.order_details = [];
+      items.forEach((item) => {
+        const orderDetail: IOrderDetails = {
+          product_id: item.product._id,
+          quantity: item.quantity,
+        };
+        values.order_details.push(orderDetail);
+      });
+      await axiosClient
+        .post("/orders", values, totalOrder)
+        .then(() => {
           window.alert("Thành công");
         })
-        .catch((error) => {
+        .catch(() => {
           window.alert("Thất bại");
         });
     },
@@ -97,8 +117,10 @@ const CheckOut = () => {
 
   return (
     <>
-      <div className="bg-primary_green text-[#ffff] text-center py-4 mt-[80px] ">
-        <h1 className="font-medium text-[20px]">CHECKOUT</h1>
+      <div className="w-full bg-primary_green lg:h-[75px] lg:p-10 h-auto p-5 text-center">
+        <h1 className="h-full w-full flex items-center justify-center text-2xl lg:text-4xl text-white font-bold">
+          CHECKOUT
+        </h1>
       </div>
       <form action="" onSubmit={formik.handleSubmit}>
         <div className="container px-3">
@@ -213,7 +235,7 @@ const CheckOut = () => {
                         : null}
                     </p>
                   </div>
-                  <div className="flex flex-col mt-3">
+                  {/* <div className="flex flex-col mt-3">
                     <div className="flex">
                       <h2 className="font-semibold">Town / City</h2>
                       <span className="ml-1 text-[20px] text-red-500">*</span>
@@ -239,6 +261,25 @@ const CheckOut = () => {
                         </option>
                       ))}
                     </select>
+                    <p className="text-red-500">
+                      {formik.touched.shipping_city
+                        ? formik.errors.shipping_city
+                        : null}
+                    </p>
+                  </div> */}
+                  <div className="flex flex-col mt-3">
+                    <div className="flex">
+                      <h2 className="font-semibold">Town / City</h2>
+                      <span className="ml-1 text-[20px] text-red-500">*</span>
+                    </div>
+                    <input
+                      type="text"
+                      name="shipping_city"
+                      value={formik.values.shipping_city}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className="border p-2"
+                    />
                     <p className="text-red-500">
                       {formik.touched.shipping_city
                         ? formik.errors.shipping_city
@@ -372,39 +413,56 @@ const CheckOut = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="flex justify-between p-3  border-t-2">
-                        <td className="flex w-[222px]">
-                          <div className="w-[100px] ">
-                            <img
-                              className="w-[100%] bg-cover"
-                              src="	https://easyscape.co.za/wp-content/uploads/2020/11/Micranthemum-Monte-Carlo.png"
-                              alt=""
-                            />
-                          </div>
-                          <div className="ml-2 flex flex-col gap-2">
-                            <h2 className="font-medium leading-[20px]">
-                              Micranthemum sp ‘Monte Carlo’
-                            </h2>
-                            <div className="leading-[15px] flex flex-col gap-2">
-                              <p className="text-primary_green text-[13px] ">
-                                only 4 left
-                              </p>
-                              <span className="text-[12px] flex items-center">
-                                <AiOutlineClose />
-                                <span className="text-[15px]">1</span>
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span>R400</span>
-                        </td>
-                      </tr>
+                      {items &&
+                        items.map((item, index) => {
+                          return (
+                            <tr
+                              className="flex justify-between p-3 border-t-2"
+                              key={index}
+                            >
+                              <td className="flex w-full p-3">
+                                <div className="flex-none w-[100px]">
+                                  <img
+                                    className="w-[90%] bg-cover"
+                                    src={item.product.product_image}
+                                    alt=""
+                                  />
+                                </div>
+                                <div className="ml-2 flex flex-col gap-2">
+                                  <h2 className="font-medium leading-[20px]">
+                                    {item.product.name}
+                                  </h2>
+                                  <div className="leading-[15px] flex flex-col gap-2">
+                                    <p className="text-primary_green text-[13px] ">
+                                      only 4 left
+                                    </p>
+                                    <span className="text-[12px] flex items-center">
+                                      <AiOutlineClose />
+                                      <span className="text-[15px]">
+                                        {item.quantity}
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <span>
+                                  {" "}
+                                  {numeral(item.quantity * item.product?.total)
+                                    .format("0,0")
+                                    .replace(/,/g, ".")}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                     <tfoot>
                       <tr className="flex justify-between p-3  border-t-2">
                         <th>Subtotal</th>
-                        <td>R400</td>
+                        <td>
+                          {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
+                        </td>
                       </tr>
                       <tr className="flex justify-between p-3  border-t-2">
                         <th>Shipping</th>
@@ -421,7 +479,9 @@ const CheckOut = () => {
                       </tr>
                       <tr className="flex justify-between p-3  border-t-2">
                         <th>Total</th>
-                        <td className="text-primary_green font-bold">R550</td>
+                        <td className="text-primary_green font-bold">
+                          {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
+                        </td>
                       </tr>
                     </tfoot>
                   </table>
@@ -448,7 +508,7 @@ const CheckOut = () => {
           </div>
         </div>
       </form>
-      <div className="bg-[#F4F4F4] md:mt-[50px]">
+      {/* <div className="bg-[#F4F4F4] md:mt-[50px]">
         <div className="container mt-[20px] ">
           <div className=" py-8 px-3 flex flex-col gap-3 md:flex-row">
             <div className="flex items-center">
@@ -482,7 +542,7 @@ const CheckOut = () => {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </>
   );
 };

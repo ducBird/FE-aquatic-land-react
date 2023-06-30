@@ -1,36 +1,29 @@
 import { useState, useEffect } from "react";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
-import { axiosClient } from "../../../libraries/axiosClient";
+import { axiosClient } from "../../../../libraries/axiosClient";
 // import { useRouter } from "next/router";
 import Product from "../Product";
 // import Link from "next/link";
 import { motion } from "framer-motion";
 import { Link, useParams } from "react-router-dom";
-interface IProducts {
-  _id: string;
-  category_id: string;
-  sub_category_id: string;
-  name: string;
-  product_image: string;
-  discount: number;
-}
+import { IProduct } from "../../../../interfaces/IProducts";
 
 interface Iprops {
   categoryName: string | undefined;
   subCategoryName: string | undefined;
+  name: string | null;
+  products: IProduct[];
+  categoryId: string | undefined;
+  subCategoryId: string | undefined;
 }
-function Products({ categoryName, subCategoryName }: Iprops) {
-  // lấy id từ usePrams
-  // const router = useRouter();
-  const { categoryId } = useParams();
-  const { subCategoryId } = useParams();
-
-  // products
-  const [products, setProducts] = useState<Array<IProducts>>([]);
-  const [productsSubCategory, setProductsSubCategory] = useState<
-    Array<IProducts>
-  >([]);
-
+function Products({
+  categoryName,
+  subCategoryName,
+  name,
+  products,
+  categoryId,
+  subCategoryId,
+}: Iprops) {
   const [currentPage, setCurrentPage] = useState(1);
 
   // dùng 1 state để lưu số lượng hiển thị ban đầu là 8
@@ -46,18 +39,12 @@ function Products({ categoryName, subCategoryName }: Iprops) {
   const endIndex = startIndex + itemsPerPage;
 
   // dùng biến displayedItems để đại diện hiển thị sản phẩm trên trang hiện tại
-  let displayedItems: IProducts[] = [];
-  if (subCategoryId) {
-    displayedItems = productsSubCategory.slice(startIndex, endIndex);
-  } else if (categoryId) {
-    displayedItems = products.slice(startIndex, endIndex);
-  } else {
-    displayedItems = products.slice(startIndex, endIndex);
-  }
+  const cloneProducts = products;
+  const productItems = cloneProducts?.slice(startIndex, endIndex);
 
   // tính toán số lượng trang tổng cộng dựa trên tổng số lượng trong data
   // Dùng Math.ceil để làm tròn, để đảm bảo có sản phẩm dư sẽ có một trang khác hiển thị
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const totalPages = Math.ceil(cloneProducts.length / itemsPerPage);
 
   // hàm này để dùng để di chuyển đến trang trước đó nếu trang đang hiển thị lớn hơn 1
   const handlePreviousPage = () => {
@@ -90,53 +77,6 @@ function Products({ categoryName, subCategoryName }: Iprops) {
     pageNumbers.push(i);
   }
 
-  // get data product subcategory
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const storageCategoryId = localStorage.getItem("category-id");
-        const targetCategoryId = categoryId || storageCategoryId;
-
-        const storageSubCategoryId = localStorage.getItem("sub-category-id");
-        const targetSubCategoryId = subCategoryId || storageSubCategoryId;
-        if (targetSubCategoryId) {
-          const response = await axiosClient.get(
-            "/products/" + targetCategoryId + "/sub/" + targetSubCategoryId
-          );
-          setProductsSubCategory(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
-
-    fetchProducts();
-  }, [categoryId, subCategoryId]);
-
-  // get data products
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const storageCategoryId = localStorage.getItem("category-id");
-        const targetCategoryId = categoryId || storageCategoryId;
-
-        if (targetCategoryId) {
-          const response = await axiosClient.get(
-            "/products/" + targetCategoryId
-          );
-          setProducts(response.data);
-        } else {
-          const response = await axiosClient.get("/products");
-          setProducts(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      }
-    };
-
-    fetchProducts();
-  }, [categoryId]);
-
   return (
     <div className="shop-products">
       <div className="w-full lg:flex">
@@ -152,6 +92,7 @@ function Products({ categoryName, subCategoryName }: Iprops) {
             </Link>
           </motion.div>
           <span className="mx-2 text-sm lg:text-lg">/</span>
+          {/* hiển thị tên tương ứng của categoryId nếu có */}
           {categoryId ? (
             <motion.div whileTap={{ scale: 0.75 }}>
               <Link to={`/product-category/${categoryId}`}>
@@ -167,7 +108,7 @@ function Products({ categoryName, subCategoryName }: Iprops) {
             ""
           )}
           {categoryId ? <span className="mx-2 text-sm lg:text-lg">/</span> : ""}
-
+          {/* hiển thị tên tương ứng của subcategoryId nếu có */}
           {subCategoryId ? (
             <motion.div whileTap={{ scale: 0.75 }}>
               <Link to={`/product-category/${categoryId}/sub/${subCategoryId}`}>
@@ -184,6 +125,17 @@ function Products({ categoryName, subCategoryName }: Iprops) {
           ) : (
             ""
           )}
+          {/* hiển thị tên tương ứng của name tìm kiếm nếu có */}
+          {name ? (
+            <motion.div whileTap={{ scale: 0.75 }}>
+              <span className="text-sm lg:text-lg font-semibold">
+                Search results for: "{name}"
+              </span>
+            </motion.div>
+          ) : (
+            ""
+          )}
+          {name ? <span className="text-sm lg:text-lg mx-2">/</span> : ""}
           <span className="text-sm lg:text-lg font-semibold">
             Page <span>{currentPage}</span>
           </span>
@@ -232,8 +184,14 @@ function Products({ categoryName, subCategoryName }: Iprops) {
           </span>
         </div>
       </div>
-      <div className="w-full grid gap-x-2 gap-y-2 grid-cols-2 lg:grid-cols-4 text-center mt-5">
-        <Product displayedItems={displayedItems} />
+      <div className="w-full grid gap-2 grid-cols-2 lg:grid-cols-4 text-center mt-5">
+        {productItems.length > 0 ? (
+          productItems.map((item) => {
+            return <Product product={item} key={item?._id} />;
+          })
+        ) : (
+          <p>No items to display</p>
+        )}
       </div>
 
       {/* các nút điều hướng trang */}

@@ -8,7 +8,8 @@ import Footer from "./components/layout/Footer";
 import FooterTool from "./components/layout/FooterToolbar";
 import Home from "./components/layout/Home";
 import Shop from "./components/layout/Shop";
-import ProductDetail from "./components/layout/ProductDetail";
+import ProductDetail from "./components/layout/Shop/ProductDetail";
+import Work from "./components/layout/Work/Work";
 function App() {
   return (
     // <main className="font-roboto relative overfnlow-hidde">
@@ -24,7 +25,7 @@ function App() {
             </div>
           </main>
         </header>
-        <section style={{ marginTop: "62px" }}>
+        <section style={{ marginTop: "64px" }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route
@@ -43,7 +44,8 @@ function App() {
               path="/product-category/:categoryId/sub/:subCategoryId"
               element={<Shop />}
             />
-
+            s
+            <Route path="/search-products" element={<Shop />} />
             <Route
               path="*"
               element={
@@ -54,6 +56,9 @@ function App() {
             />
           </Routes>
         </section>
+        <div className="mt-10">
+          <Work />
+        </div>
         <footer>
           <Footer />
         </footer>
