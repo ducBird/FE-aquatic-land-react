@@ -9,6 +9,7 @@ import Navbar from "./Navbar";
 import NavPage from "./Subnav/NavPage";
 import Cart from "../../../components/Cart";
 import LoginCart from "../../Auth/Login/LoginCart";
+import AquaticLogo from "../../../assets/ImageAquaticLand.png";
 
 export default function Header() {
   const [openLogin, setOpenLogin] = React.useState(false);
@@ -70,7 +71,7 @@ export default function Header() {
               <a href="/">
                 <img
                   className="py-[5px] max-w-[150px] lg:max-w-[217px]"
-                  src="https://easyscape.co.za/wp-content/uploads/2021/08/EasyScape.svg"
+                  src={AquaticLogo}
                   alt="image_brand"
                 />
               </a>
