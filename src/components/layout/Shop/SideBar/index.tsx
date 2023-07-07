@@ -142,11 +142,11 @@ function SideBar({
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleSearch();
+      closeSitebarOnClick();
     }
   };
 
   // sự kiện thanh lọc giá sản phẩm
-
   const handleSliderChange = (value) => {
     setSliderValue(value);
   };
@@ -167,7 +167,10 @@ function SideBar({
           />
           <div
             className="w-[15%] h-full flex items-center justify-center hover:bg-green-700 cursor-pointer hover:text-white"
-            onClick={() => handleSearch()}
+            onClick={() => {
+              handleSearch();
+              closeSitebarOnClick();
+            }}
           >
             <Link
               to={
@@ -226,7 +229,7 @@ function SideBar({
                     </Link>
 
                     <p
-                      className={`count basis-1/4 border border-gray-300 rounded-full px-3 flex items-center justify-center ${
+                      className={`count basis-1/4  border border-gray-300 rounded-full px-3 flex items-center justify-center ${
                         hoveredCategoryId === category._id
                           ? "bg-green-800 text-white"
                           : ""
@@ -262,7 +265,7 @@ function SideBar({
                   </div>
                   {categoryCurrent?.category_id === category._id &&
                     subCategoriesData.length > 0 && (
-                      <ul className="ml-[20px] mt-2">
+                      <ul className="ml-[10px] mt-2">
                         {subCategoriesData.map((subCategory, index) => {
                           // biến dùng để lọc ra các products nằm trong subcategories nào
                           const subCategoriesProductsData = products.filter(
@@ -294,7 +297,7 @@ function SideBar({
                                   {subCategory.name}
                                 </Link>
                                 <p
-                                  className={`count basis-1/4 border border-gray-300 rounded-full px-4 flex items-center justify-center ${
+                                  className={`count basis-1/4  border border-gray-300 rounded-full px-4 flex items-center justify-center ${
                                     hoveredSubCategoryId === subCategory._id
                                       ? "text-white bg-green-800"
                                       : ""
@@ -331,7 +334,10 @@ function SideBar({
           </p>
         </div>
         <button
-          onClick={() => onHandleFilterProducts(sliderValue)}
+          onClick={() => {
+            onHandleFilterProducts(sliderValue);
+            closeSitebarOnClick();
+          }}
           className="border py-1 px-4 rounded-full bg-primary_green text-white font-bold mt-2"
         >
           FILTER

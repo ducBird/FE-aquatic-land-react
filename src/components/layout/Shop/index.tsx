@@ -28,6 +28,9 @@ function Shop() {
   const [isMobile, setIsMobile] = useState(false);
   // products
   const [products, setProducts] = useState<Array<IProduct>>([]);
+  const [minPrice, setMinPrice] = useState<number>(0);
+  const [maxPrice, setMaxPrice] = useState<number>(0);
+  const [showMinMax, setShowMinMax] = useState<boolean>(false);
   // lấy id từ usePrams
   // const router = useRouter();
   const { categoryId } = useParams();
@@ -46,10 +49,10 @@ function Shop() {
     setOpenSiteBar(false);
   };
   const handleFilterProducts = async (filter: number[]) => {
-    // eslint-disable-next-line no-debugger
-    debugger;
-
     const [min_price, max_price] = filter;
+    setMinPrice(min_price);
+    setMaxPrice(max_price);
+    setShowMinMax(true);
     let url = `?min_price=${min_price}&max_price=${max_price}`;
     if (subCategoryId) {
       url += `&sub_category_id=${subCategoryId}`;
@@ -134,7 +137,7 @@ function Shop() {
 
   return (
     <>
-      <div className="w-full bg-primary_green lg:h-[75px] lg:p-10 h-auto p-5 text-center">
+      <div className="w-full bg-primary_green lg:h-[75px] lg:p-10 h-auto p-5 text-center lg:mb-0 mb-3">
         {subCategoryId ? (
           <h3 className="h-full w-full flex items-center justify-center text-3xl lg:text-4xl text-white font-bold">
             {subCategoryName}
@@ -159,7 +162,7 @@ function Shop() {
         }`}
         onClick={handleSiteBarClose}
       ></div>
-      <div className="w-full h-auto relative lg:flex lg:px-20 mb-10">
+      <div className="w-full h-auto relative lg:flex lg:px-20 mb-10 overflow-y-auto">
         {isMobile && (
           <div className="flex m-5">
             <button onClick={handleSiteBar}>
@@ -174,19 +177,22 @@ function Shop() {
           className={`${
             isMobile
               ? "absolute left-0 -top-5 z-20 bg-white h-screen w-full"
-              : "lg:w-[25%] lg:block "
-          } p-5 ${isMobile && !openSitebar ? "hidden" : ""}`}
+              : "lg:w-[30%] lg:block "
+          } p-2 ${isMobile && !openSitebar ? "hidden" : ""}`}
+          style={{ overflowY: "auto", maxHeight: "calc(100vh - 100px)" }}
         >
           <button
-            className="absolute top-3 right-3 text-red-500 lg:hidden"
+            className="absolute top-4 right-3 text-red-500 lg:hidden"
             onClick={handleSiteBarClose}
           >
             <MdOutlineClose size={25} />
           </button>
           <p className="my-8"></p>
           <div
-            className="sitebar-content h-full overflow-y-auto"
-            style={{ overflowY: "auto", maxHeight: "800px" }}
+            className={`sitebar-content lg:w-[75%] m-5 lg:m-10 ${
+              isMobile && openSitebar ? "lg:ml-[30%]" : ""
+            }`}
+            // style={{ overflowY: "scroll", maxHeight: "calc(100vh - 60px)" }}
           >
             <SideBar
               closeSitebarOnClick={handleSiteBarClose}
@@ -209,6 +215,9 @@ function Shop() {
             products={products}
             categoryId={categoryId}
             subCategoryId={subCategoryId}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            showMinMax={showMinMax}
           />
         </div>
       </div>

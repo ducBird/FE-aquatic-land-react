@@ -15,6 +15,7 @@ const Cart = (props: Props) => {
   const { openCart, setOpenCart } = props;
   const handleCloseCart = () => {
     setOpenCart(false);
+    window.scrollTo(0, 0);
   };
   const [products, setProducts] = useState(true);
   const { items, remove } = useCarts((state) => state);
@@ -23,7 +24,7 @@ const Cart = (props: Props) => {
     return total + item.product.total * item.quantity;
   }, 0);
   return (
-    <div>
+    <div className="overflow-y-auto">
       <div
         className={`fixed h-screen z-20 w-[100%] bg-black/50 ${
           openCart ? `visible` : `invisible`
@@ -37,7 +38,7 @@ const Cart = (props: Props) => {
       >
         <div className="py-6 px-3 border border-b flex justify-between items-center">
           <img
-            className=" w-[100px] "
+            className="w-[100px]"
             src="https://easyscape.co.za/wp-content/uploads/2021/08/EasyScape.svg"
             alt="image_brand"
           />
@@ -50,14 +51,17 @@ const Cart = (props: Props) => {
           </div>
         </div>
         {products ? (
-          <div className=" h-[100vh] mb-5">
+          <div
+            className="h-[100vh] mb-5 overflow-y-auto scrollbar"
+            style={{ maxHeight: "calc(100vh - 100px)" }}
+          >
             <div className="h-[65vh] border-b">
               {items.length > 0 ? (
-                <ul className="h-full overflow-y-auto scrollbar">
+                <ul className="h-full">
                   {items.length > 0 &&
                     items.map((item, index) => {
                       return (
-                        <li className="border-b " key={index}>
+                        <li className="border-b" key={index}>
                           <div className="relative flex py-3 px-2 h-auto">
                             <div className="">
                               <img
@@ -70,7 +74,7 @@ const Cart = (props: Props) => {
                               <h2 className="font-medium leading-[20px]">
                                 {item.product.name}
                               </h2>
-                              <p className="text-primary_green text-[13px] ">
+                              <p className="text-primary_green text-[13px]">
                                 only 4 left
                               </p>
                               <span className="flex items-center">
@@ -103,10 +107,10 @@ const Cart = (props: Props) => {
                   <p className="my-4 font-bold">No product in the basket</p>
                   <Link to="/shop">
                     <button
-                      className="bg-primary_green rounded-full"
+                      className="bg-primary_green rounded-full px-5 py-2 text-white"
                       onClick={() => handleCloseCart()}
                     >
-                      <p className="px-5 py-2 text-white">RETURN TO SHOP</p>
+                      RETURN TO SHOP
                     </button>
                   </Link>
                 </div>
@@ -139,7 +143,7 @@ const Cart = (props: Props) => {
           </div>
         ) : (
           <div className="cart-menu mt-8">
-            <div className="text-center ">
+            <div className="text-center">
               <BsFillCartXFill
                 size={130}
                 className="m-auto mb-3 text-[#f1f1f1]"

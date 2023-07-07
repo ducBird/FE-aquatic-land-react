@@ -1,14 +1,12 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { AiOutlineClose } from "react-icons/ai";
-import { BiMedal } from "react-icons/bi";
-import { RiSecurePaymentFill } from "react-icons/ri";
-import { TbTruckDelivery } from "react-icons/tb";
 import { axiosClient } from "../../../libraries/axiosClient";
 import { useCarts } from "../../../hooks/useCart";
 import numeral from "numeral";
+import { PayPalButton } from "react-paypal-button-v2";
 interface typeCity {
   id: string;
   city: string;
@@ -37,6 +35,15 @@ const ordersSchema = Yup.object({
 const CheckOut = () => {
   // const [isLocation, setIsLocation] = React.useState<string>("");
   // const [isCity, setIsCity] = React.useState<string>("");
+  // payment paypal
+
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [checkInput, setCheckInput] = useState(0);
+  const [sdkReady, setSdkReady] = useState(false);
+  const [city, setCity] = React.useState([]);
+  //chứa tên tp vừa chọn
+  const [selectedCity, setSelectedCity] = React.useState<typeCity>();
+  // hàm để set lại giá trị khi chọn các phương thức thanh toán
   // zustand
   const { items } = useCarts((state) => state);
   const totalOrder = items.reduce((total, item) => {
@@ -51,6 +58,8 @@ const CheckOut = () => {
       email: "",
       shipping_city: "",
       order_details: [] as IOrderDetails[],
+      total_money_order: totalOrder,
+      payment_information: paymentMethod,
     },
     validationSchema: ordersSchema,
     onSubmit: async (values) => {
@@ -63,19 +72,16 @@ const CheckOut = () => {
         values.order_details.push(orderDetail);
       });
       await axiosClient
-        .post("/orders", values, totalOrder)
+        .post("/orders", values)
         .then(() => {
-          window.alert("Thành công");
+          window.alert("Đặt hàng thành công");
         })
         .catch(() => {
-          window.alert("Thất bại");
+          window.alert("Đặt hàng thất bại");
         });
     },
   });
 
-  const [city, setCity] = React.useState([]);
-  //chứa tên tp vừa chọn
-  const [selectedCity, setSelectedCity] = React.useState<typeCity>();
   React.useEffect(() => {
     axios
       .get("https://63528f71a9f3f34c3741633b.mockapi.io/api/v1/users")
@@ -87,6 +93,169 @@ const CheckOut = () => {
       });
   }, []);
   // console.log("city", city);
+
+  const handlePaymentMethodChange = (event) => {
+    const selectedPaymentMethod = event.target.value;
+    setPaymentMethod(selectedPaymentMethod);
+    formik.setFieldValue("payment_information", selectedPaymentMethod);
+  };
+
+  const onSuccessPaypal = async (details, data) => {
+    // Create an object containing the order data
+    const orderData = {
+      // Populate the order data based on the formik values
+      // Assuming you have access to the formik values here
+      first_name: formik.values.first_name,
+      last_name: formik.values.last_name,
+      shipping_information: formik.values.shipping_information,
+      phoneNumber: formik.values.phoneNumber,
+      email: formik.values.email,
+      shipping_city: formik.values.shipping_city,
+      order_details: [] as IOrderDetails[],
+      payment_information: paymentMethod,
+      payment_status: true,
+      total_money_order: totalOrder,
+      // Populate the order details based on items
+    };
+
+    items.forEach((item) => {
+      const orderDetail = {
+        product_id: item.product._id,
+        quantity: item.quantity,
+      };
+      orderData.order_details.push(orderDetail);
+    });
+
+    try {
+      // Send the order data to the server
+      const response = await axiosClient.post("/orders", orderData);
+      window.alert("Đặt hàng thành công");
+    } catch (error) {
+      console.error(error);
+      window.alert("Đặt hàng thất bại");
+    }
+    // OPTIONAL: Call your server to save the transaction
+    return fetch("/paypal-transaction-complete", {
+      method: "post",
+      body: JSON.stringify({
+        orderID: data.orderID,
+      }),
+    });
+  };
+  // hàm add Script paypal
+  const addPaypalScript = async () => {
+    const { data } = await axiosClient.get("/payment-paypal");
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = `https://www.paypal.com/sdk/js?client-id=${data.data}`;
+    script.async = true;
+    script.onload = () => {
+      setSdkReady(true);
+    };
+    document.body.appendChild(script);
+  };
+  useEffect(() => {
+    if (!window.paypal) {
+      addPaypalScript();
+    } else {
+      setSdkReady(true);
+    }
+  }, []);
+
+  // payment vnpay
+  const onSuccessVnpay = async () => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const vnpResponseCode = queryParams.get("vnp_ResponseCode");
+    const vnpTransactionStatus = queryParams.get("vnp_TransactionStatus");
+    // Kiểm tra xem đã chuyển hướng trở lại từ VNPay hay chưa
+    if (vnpResponseCode === "00" && vnpTransactionStatus === "00") {
+      // Thực hiện gửi yêu cầu đặt hàng
+      // Khôi phục dữ liệu từ Local Storage
+      let orderData;
+      try {
+        orderData = JSON.parse(localStorage.getItem("formValues") || "{}");
+      } catch (error) {
+        console.error("Lỗi khi phân tích chuỗi JSON:", error);
+        return;
+      }
+
+      console.log("orderData", orderData);
+      if (orderData !== null) {
+        // Cập nhật giá trị payment_information thành "vnpay"
+        orderData.payment_information = "vnpay";
+
+        // Thực hiện gửi yêu cầu đặt hàng với dữ liệu đã lưu trữ
+        try {
+          await axiosClient.post("/orders", orderData);
+          window.alert("Đặt hàng thành công");
+          window.localStorage.removeItem("formValues");
+          window.location.replace(
+            "http://127.0.0.1:3000/component/checkcart/checkout"
+          );
+        } catch (error) {
+          console.error(error);
+          window.alert("Đặt hàng thất bại");
+        }
+      }
+    }
+  };
+
+  const checkInputData = async () => {
+    let isLogShown = false;
+    const requiredFields: {
+      [key in keyof typeof formik.values]: string;
+    } = {
+      first_name: "Họ",
+      last_name: "Tên",
+      shipping_information: "Địa chỉ",
+      shipping_city: "Thành phố",
+      phoneNumber: "Số điện thoại",
+      email: "Email",
+      order_details: "Thông tin đơn hàng",
+      total_money_order: "Tổng tiền đơn hàng",
+      payment_information: "Thông tin thanh toán",
+    };
+
+    const missingFields: string[] = [];
+    for (const field in requiredFields) {
+      if (!formik.values[field]) {
+        missingFields.push(requiredFields[field]);
+      }
+    }
+    setCheckInput(missingFields.length);
+    if (missingFields.length > 0) {
+      if (!isLogShown) {
+        alert(`Vui lòng nhập đầy đủ thông tin ${missingFields.join(", ")}`);
+        isLogShown = true;
+      }
+
+      return false;
+    }
+    return true;
+  };
+  const paymentVnpayClick = async () => {
+    const inputValid = await checkInputData();
+    if (inputValid === false) {
+      return;
+    }
+    // Lưu các giá trị vào localStorage trước khi chuyển hướng đến trang thanh toán Vnpay
+    localStorage.setItem("formValues", JSON.stringify(formik.values));
+    const paymentUrl = await axiosClient.post("/payment/create_payment_url", {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      amount: totalOrder,
+      bankCode: "NCB",
+      orderDescription: "thanh toan don hang test",
+      orderType: "other",
+      language: "vn",
+    });
+    window.location.replace(paymentUrl.data);
+  };
+
+  useEffect(() => {
+    onSuccessVnpay();
+  }, []);
 
   const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const cityId = event.target.value;
@@ -349,35 +518,54 @@ const CheckOut = () => {
                       />
                       <span className="font-semibold">Create an account?</span>
                     </div> */}
+
                     <div className="flex gap-8 mt-3">
                       <h1 className="font-semibold">Payment methods</h1>
-                      <div className="flex flex-col">
-                        <div className="flex  gap-1">
+                      <div className="flex flex-col ">
+                        <div className="flex gap-1 ">
                           <input
                             type="radio"
-                            id="option1"
-                            name="options"
-                            value="option1"
+                            id="CASH"
+                            name="payment_information"
+                            value="CASH"
+                            onChange={handlePaymentMethodChange}
+                            checked={paymentMethod === "CASH"}
                           />
-                          <label htmlFor="option1">Option 1</label>
+                          <label htmlFor="CASH" className="cursor-pointer">
+                            Thanh toán bằng tiền mặt
+                          </label>
                         </div>
-                        <div className="flex  gap-1">
+                        <div
+                          className="flex gap-1"
+                          onMouseDown={checkInputData}
+                        >
                           <input
                             type="radio"
-                            id="option2"
-                            name="options"
-                            value="option2"
+                            id="paypal_payment"
+                            name="payment_information"
+                            value="paypal"
+                            onChange={handlePaymentMethodChange}
+                            checked={paymentMethod === "paypal"}
                           />
-                          <label htmlFor="option2">Option 2</label>
+                          <label
+                            htmlFor="paypal_payment"
+                            className="cursor-pointer"
+                          >
+                            Thanh toán bằng paypal
+                          </label>
                         </div>
-                        <div className="flex  gap-1">
+                        <div className="flex gap-1" onClick={paymentVnpayClick}>
                           <input
                             type="radio"
-                            id="option3"
-                            name="options"
-                            value="option3"
+                            id="vnpay"
+                            name="payment_information"
+                            value="vnpay"
+                            onChange={handlePaymentMethodChange}
+                            checked={paymentMethod === "vnpay"}
                           />
-                          <label htmlFor="option3">Option 3</label>
+                          <label htmlFor="vnpay" className="cursor-pointer">
+                            Thanh toán bằng vnpay
+                          </label>
                         </div>
                       </div>
                     </div>
@@ -496,12 +684,28 @@ const CheckOut = () => {
                     - Wednesday (out of Gauteng) because we do not want your
                     plants sitting in warehouses over the weekend.
                   </p>
-                  <button
-                    type="submit"
-                    className="bg-primary_green w-[100%] rounded-[20px] py-3 text-white font-bold hover:bg-opacity-[0.8]"
-                  >
-                    PLACE ORDER
-                  </button>
+                  {paymentMethod === "paypal" &&
+                  sdkReady &&
+                  checkInput === 0 ? (
+                    <div className="z-0">
+                      <PayPalButton
+                        amount={totalOrder / 20000}
+                        // shippingPreference="NO_SHIPPING" // default is "GET_FROM_FILE"
+                        onSuccess={onSuccessPaypal}
+                        onError={(error) => {
+                          alert("Error");
+                          console.log("error", error);
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="bg-primary_green w-[100%] rounded-[20px] py-3 text-white font-bold hover:bg-opacity-[0.8]"
+                    >
+                      PLACE ORDER
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
