@@ -2,15 +2,41 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { MdOutlineClose } from "react-icons/md";
 import { AiOutlineUser } from "react-icons/ai";
-import { Form, Input, Button } from "antd";
+import { Form, Input, Button, message } from "antd";
+import { ICustomer } from "../../../interfaces/ICustomers";
+import { axiosClient } from "../../../libraries/axiosClient";
+import { useUser } from "../../../hooks/useUser";
 interface Props {
   openLogin: boolean;
   setOpenLogin: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const LoginCart = (props: Props) => {
   const { openLogin, setOpenLogin } = props;
+  const [loginForm] = Form.useForm();
+  const { addUser } = useUser((state) => state);
+
   const handleLoginClose = () => {
     setOpenLogin(false);
+  };
+
+  const onLoginFinish = (values: ICustomer) => {
+    console.log(values);
+
+    axiosClient
+      .post("/customers/login", values)
+      .then((response) => {
+        addUser(response.data.user);
+        message.success(response.data.msg);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      })
+      .catch((err) => {
+        message.error(err.response.data.msg);
+      });
+  };
+  const onLoginFinishFailed = (err) => {
+    console.log("Login Failed:", err);
   };
   return (
     <div>
@@ -84,39 +110,37 @@ const LoginCart = (props: Props) => {
             </div>
           </form> */}
           <Form
-            name="basic"
-            initialValues={{
-              remember: true,
-            }}
+            form={loginForm}
+            name="login-form"
+            initialValues={{ remember: true }}
             autoComplete="off"
+            onFinish={onLoginFinish}
+            onFinishFailed={onLoginFinishFailed}
           >
             <div className="flex">
-              <h2 className="mb-2 text-[15px] font-medium">
-                Username or email address
-              </h2>
-              <span className="ml-1 text-red-600 text-[20px]">*</span>
+              <h2 className="mb-2 text-[15px] font-medium">First Name</h2>
             </div>
             <Form.Item
-              name="username"
+              name="email"
               rules={[
-                {
-                  required: true,
-                  message: "Please input your username or email!",
-                },
+                { required: true, message: "Chưa nhập thư điện tử!" },
+                { type: "email", message: "Thư điện tử không đúng" },
               ]}
+              hasFeedback
             >
               <Input className="outline-none border border-gray-400 h-[40px]" />
             </Form.Item>
             <div className="flex">
               <h2 className="mb-2 text-[15px] font-medium">Password</h2>
-              <span className="ml-1 text-red-600 text-[20px]">*</span>
             </div>
             <Form.Item
               name="password"
               rules={[
+                { required: true, message: "Chưa nhập mật khẩu!" },
                 {
-                  required: true,
-                  message: "Please input your password!",
+                  min: 5,
+                  max: 50,
+                  message: "Độ dài mật khẩu từ 5-50 kí tự",
                 },
               ]}
             >

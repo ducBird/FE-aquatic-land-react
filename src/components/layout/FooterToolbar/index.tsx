@@ -2,7 +2,7 @@ import React from "react";
 import { AiOutlineShop, AiOutlineHeart } from "react-icons/ai";
 import { BsHandbag } from "react-icons/bs";
 import { RxPerson } from "react-icons/rx";
-import LoginCart from "../../Auth/Login/LoginCart";
+import LoginCart from "../../Auth/Login/LoginCard";
 
 const FooterTool = () => {
   const [openLogin, setOpenLogin] = React.useState(false);

@@ -1,10 +1,40 @@
-import { Form, Input } from "antd";
+import { Form, Input, message } from "antd";
 import { FaGoogle } from "react-icons/fa";
 import React from "react";
-const Register = (props) => {
+import { ICustomer } from "../../../interfaces/ICustomers";
+import { axiosClient } from "../../../libraries/axiosClient";
+import { useUser } from "../../../hooks/useUser";
+const Register = () => {
   const [isLogin, setIsLogin] = React.useState(true);
   const handleForm = () => {
     setIsLogin(!isLogin);
+  };
+  const { addUser } = useUser((state) => state);
+  const [loginForm] = Form.useForm();
+  const [registerForm] = Form.useForm();
+
+  const onRegisterFinish = (values) => {
+    console.log("register finished");
+  };
+  const onRegisterFinishFailed = (err) => {
+    console.log("Failed:", err);
+  };
+  const onLoginFinish = (values: ICustomer) => {
+    axiosClient
+      .post("/customers/login", values)
+      .then((response) => {
+        addUser(response.data.user);
+        message.success(response.data.msg);
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
+      })
+      .catch((err) => {
+        message.error(err.response.data.msg);
+      });
+  };
+  const onLoginFinishFailed = (err) => {
+    console.log("Login Failed:", err);
   };
   return (
     <>
@@ -20,11 +50,12 @@ const Register = (props) => {
                   REGISTER
                 </h1>
                 <Form
-                  name="basic"
-                  initialValues={{
-                    remember: true,
-                  }}
-                  autoComplete="off"
+                  form={registerForm}
+                  name="register-form"
+                  initialValues={{ remember: true }}
+                  autoComplete="on"
+                  onFinish={onRegisterFinish}
+                  onFinishFailed={onRegisterFinishFailed}
                 >
                   <div className="flex">
                     <h2 className="mb-2 text-[15px] font-medium">
@@ -75,44 +106,42 @@ const Register = (props) => {
                 </Form>
               </div>
             ) : (
-              <div>
+              <>
                 <h1 className="md:mt-[50px] my-5 font-semibold text-[20px]">
                   LOGIN
                 </h1>
                 <Form
-                  name="basic"
-                  initialValues={{
-                    remember: true,
-                  }}
-                  autoComplete="off"
+                  form={loginForm}
+                  name="login-form"
+                  initialValues={{ remember: true }}
+                  autoComplete="on"
+                  onFinish={onLoginFinish}
+                  onFinishFailed={onLoginFinishFailed}
                 >
                   <div className="flex">
-                    <h2 className="mb-2 text-[15px] font-medium">
-                      Username or email address
-                    </h2>
-                    <span className="ml-1 text-red-600 text-[20px]">*</span>
+                    <h2 className="mb-2 text-[15px] font-medium">Email</h2>
                   </div>
                   <Form.Item
-                    name="username"
+                    name="email"
                     rules={[
-                      {
-                        required: true,
-                        message: "Please input your username or email!",
-                      },
+                      { required: true, message: "Chưa nhập thư điện tử!" },
+                      { type: "email", message: "Thư điện tử không đúng" },
                     ]}
+                    hasFeedback
                   >
                     <Input className="outline-none border border-gray-400 h-[40px]" />
                   </Form.Item>
                   <div className="flex">
                     <h2 className="mb-2 text-[15px] font-medium">Password</h2>
-                    <span className="ml-1 text-red-600 text-[20px]">*</span>
                   </div>
                   <Form.Item
                     name="password"
                     rules={[
+                      { required: true, message: "Chưa nhập mật khẩu!" },
                       {
-                        required: true,
-                        message: "Please input your password!",
+                        min: 5,
+                        max: 50,
+                        message: "Độ dài mật khẩu từ 5-50 kí tự",
                       },
                     ]}
                   >
@@ -127,7 +156,7 @@ const Register = (props) => {
                       LOGIN
                     </button>
                   </Form.Item>
-                  <Form.Item>
+                  {/* <Form.Item>
                     <div className="flex justify-between items-center my-1">
                       <div className="text-[15px] font-bold flex">
                         <label
@@ -146,13 +175,13 @@ const Register = (props) => {
                         Lost your password?
                       </h2>
                     </div>
-                  </Form.Item>
+                  </Form.Item> */}
                   <div className=" flex justify-around cursor-pointer items-center w-[100%] rounded-[20px] py-2 bg-orange-700 text-[20px] text-white font-semibold hover:opacity-[0.7]">
                     LOGIN WITH GOOGLE
                     <FaGoogle />
                   </div>
                 </Form>
-              </div>
+              </>
             )}
           </div>
           <div className="md:hidden relative my-8">

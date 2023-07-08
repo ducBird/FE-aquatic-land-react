@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PageMenuData } from "../../../../meta/NavPageMenu";
+import LoginCard from "../../../Auth/Login/LoginCard";
 import { Link, useLocation } from "react-router-dom";
 
 interface INavPage {

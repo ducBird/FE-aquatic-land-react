@@ -8,7 +8,8 @@ import { IoIosGitCompare } from "react-icons/io";
 import Navbar from "./Navbar";
 import NavPage from "./Subnav/NavPage";
 import Cart from "../../../components/Cart";
-import LoginCart from "../../Auth/Login/LoginCart";
+import LoginCart from "../../Auth/Login/LoginCard";
+import AquaticLogo from "../../../assets/ImageAquaticLand.png";
 import { useCarts } from "../../../hooks/useCart";
 
 export default function Header() {
@@ -77,7 +78,7 @@ export default function Header() {
               <a href="/">
                 <img
                   className="py-[5px] max-w-[150px] lg:max-w-[217px]"
-                  src="https://easyscape.co.za/wp-content/uploads/2021/08/EasyScape.svg"
+                  src={AquaticLogo}
                   alt="image_brand"
                 />
               </a>
