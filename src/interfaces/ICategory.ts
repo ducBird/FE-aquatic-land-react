@@ -1,6 +1,6 @@
 export interface ICategory {
   _id?: object;
-  name?: string;
+  name?: string | undefined;
   image_url?: string;
   is_delete?: boolean;
   createdAt?: Date;

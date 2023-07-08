@@ -10,6 +10,7 @@ import NavPage from "./Subnav/NavPage";
 import Cart from "../../../components/Cart";
 import LoginCart from "../../Auth/Login/LoginCart";
 import AquaticLogo from "../../../assets/ImageAquaticLand.png";
+import { useCarts } from "../../../hooks/useCart";
 
 export default function Header() {
   const [openLogin, setOpenLogin] = React.useState(false);
@@ -52,7 +53,13 @@ export default function Header() {
     }
     // console.log(windowSize);
   }, [windowSize]);
-
+  // zustand
+  const { items } = useCarts((state) => state);
+  const quantityCart = items.reduce((total, item) => {
+    // cast biến item sang kiểu dữ liệu number
+    const cartItem = item as { quantity: number };
+    return total + cartItem.quantity;
+  }, 0);
   return (
     <main className="relative w-full">
       <div className="mobile-header w-full fixed z-10 bg-white">
@@ -96,7 +103,7 @@ export default function Header() {
                   </span>
                   <span className="bg-primary_green w-5 h-5 rounded-full flex items-center justify-center ms-[6px]">
                     <span className="text-[10px] leading-3 font-bold text-white">
-                      32
+                      {quantityCart}
                     </span>
                   </span>
                 </a>
@@ -139,7 +146,7 @@ export default function Header() {
                   <span className="relative flex item-center justify-center">
                     <RiShoppingCartLine size={24} />
                     <span className="absolute top-[-5px] end-[-9px] bg-primary_green text-white text-[9px] w-[15px] h-[15px] leading-[15px] text-center font-normal rounded-full z-[1]">
-                      24
+                      {quantityCart}
                     </span>
                   </span>
                 </a>
