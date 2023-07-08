@@ -8,7 +8,7 @@ import { IoIosGitCompare } from "react-icons/io";
 import Navbar from "./Navbar";
 import NavPage from "./Subnav/NavPage";
 import Cart from "../../../components/Cart";
-import LoginCart from "../../Auth/Login/LoginCart";
+import LoginCart from "../../Auth/Login/LoginCard";
 import AquaticLogo from "../../../assets/ImageAquaticLand.png";
 import { useCarts } from "../../../hooks/useCart";
 
