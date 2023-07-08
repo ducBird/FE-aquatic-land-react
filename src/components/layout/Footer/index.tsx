@@ -148,7 +148,7 @@ const Footer = () => {
           </div>
         </div>
       </div>
-      <div className="border-t-2 mb-[65px] md:mb-[0px] ">
+      <div className="border-t-2 w-full lg:mb-0 mb-[80px]">
         <p className="my-[15px] text-center">COPYRIGHT EASYSCAPE 2020 </p>
       </div>
     </>

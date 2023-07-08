@@ -10,6 +10,7 @@ import Home from "./components/layout/Home";
 import Shop from "./components/layout/Shop";
 import ProductDetail from "./components/layout/Shop/ProductDetail";
 import Work from "./components/layout/Work/Work";
+import Services from "./components/layout/Services";
 function App() {
   return (
     // <main className="font-roboto relative overfnlow-hidde">
@@ -25,7 +26,7 @@ function App() {
             </div>
           </main>
         </header>
-        <section style={{ marginTop: "64px" }}>
+        <section style={{ marginTop: "60px" }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route
@@ -44,8 +45,10 @@ function App() {
               path="/product-category/:categoryId/sub/:subCategoryId"
               element={<Shop />}
             />
-            s
+
             <Route path="/search-products" element={<Shop />} />
+            <Route path="/services" element={<Services />} />
+
             <Route
               path="*"
               element={

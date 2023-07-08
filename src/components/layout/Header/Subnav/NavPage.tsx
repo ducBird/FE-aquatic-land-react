@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PageMenuData } from "../../../../meta/NavPageMenu";
-import LoginCart from "../../../Auth/Login/LoginCard";
+import LoginCard from "../../../Auth/Login/LoginCard";
 import { Link, useLocation } from "react-router-dom";
 
 interface INavPage {
@@ -110,6 +110,7 @@ export default function NavPage({
                     handleItemClick(data.value);
                     window.localStorage.removeItem("category-id");
                     window.localStorage.removeItem("sub-category-id");
+                    window.scrollTo(0, 0);
                   }}
                   className="relative flex flex-wrap flex-1 w-full px-[20px] py-[5px] items-center min-h-[50px] text-[14px] font-bold hover:text-primary_green transition-all duration-300 header__menu"
                 >

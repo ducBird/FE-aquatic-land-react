@@ -15,6 +15,9 @@ interface Iprops {
   products: IProduct[];
   categoryId: string | undefined;
   subCategoryId: string | undefined;
+  minPrice: number;
+  maxPrice: number;
+  showMinMax: boolean;
 }
 function Products({
   categoryName,
@@ -23,7 +26,12 @@ function Products({
   products,
   categoryId,
   subCategoryId,
+  minPrice,
+  maxPrice,
+  showMinMax,
 }: Iprops) {
+  console.log(minPrice);
+  console.log(maxPrice);
   const [currentPage, setCurrentPage] = useState(1);
 
   // dùng 1 state để lưu số lượng hiển thị ban đầu là 8
@@ -140,6 +148,7 @@ function Products({
             Page <span>{currentPage}</span>
           </span>
         </div>
+
         <div className="">
           <span className="text-sm lg:text-lg font-semibold">Show: </span>
           <span
@@ -184,6 +193,19 @@ function Products({
           </span>
         </div>
       </div>
+
+      {showMinMax ? (
+        <div className="mt-2 flex text-lg font-semibold">
+          <p className="mr-2">Min: </p>
+          <p className="text-primary_green">{minPrice}</p>
+          <p className="border-r mx-4"></p>
+          <p className="mr-2">Max: </p>
+          <p className="text-primary_green">{maxPrice}</p>
+        </div>
+      ) : (
+        ""
+      )}
+
       <div className="w-full grid gap-2 grid-cols-2 lg:grid-cols-4 text-center mt-5">
         {productItems.length > 0 ? (
           productItems.map((item) => {
