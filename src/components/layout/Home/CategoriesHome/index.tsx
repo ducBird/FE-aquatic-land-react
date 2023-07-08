@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { CartItems } from "../../../../interfaces/ICartItems";
 import { useCarts } from "../../../../hooks/useCart";
 import numeral from "numeral";
+import Product from "../../Shop/Product";
 interface IProps {
   categories: ICategory[];
   products: IProduct[];
@@ -78,52 +79,10 @@ function CategoriesHome(props: IProps) {
             return (
               <div
                 key={index}
-                className="relative w-[70%] h-[350px] lg:w-[230px] lg:h-[430px] text-center border mb-5 justify-center rounded-md
+                className="w-[70%] lg:w-[230px] text-center border mb-5 justify-center rounded-md
                             shadow-md mx-auto lg:mx-0"
               >
-                <Link to={`shop/product/${item._id}`}>
-                  <div className="w-full flex items-center justify-center lg:h-[65%] lg:mt-0 mt-4">
-                    <img
-                      src={item.product_image}
-                      alt="image"
-                      className="lg:w-[90%] h-[200px] object-contain p-3"
-                    />
-                  </div>
-                  <p className="h-[14%] font-bold cursor-pointer">
-                    {item.name}
-                  </p>
-                </Link>
-                <div className="price text-lg text-primary_green mb-1">
-                  <span
-                    className={
-                      item?.discount
-                        ? "line-through text-black"
-                        : "list-none  font-bold"
-                    }
-                  >
-                    {numeral(item?.price).format("0,0").replace(/,/g, ".")}
-                  </span>
-                  <span
-                    className={item?.discount ? "pl-2 font-bold" : "hidden"}
-                  >
-                    {numeral(item?.total).format("0,0").replace(/,/g, ".")}
-                  </span>
-                </div>
-                <button
-                  className="absolute bottom-3 left-[30%] right-[30%] bg-primary_green border rounded-full shadow-md"
-                  onClick={() => {
-                    add(Cart);
-                  }}
-                >
-                  <p className="px-5 py-1 text-white hover:font-bold">Buy</p>
-                </button>
-                {item.discount > 0 && (
-                  <div className="absolute top-0 right-0">
-                    <p className="px-3 py-1 text-red-500 font-bold">
-                      - {item.discount}%
-                    </p>
-                  </div>
-                )}
+                <Product product={item} key={item?._id} />
               </div>
             );
           })}

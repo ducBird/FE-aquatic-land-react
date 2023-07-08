@@ -701,7 +701,12 @@ const CheckOut = () => {
                   ) : (
                     <button
                       type="submit"
-                      className="bg-primary_green w-[100%] rounded-[20px] py-3 text-white font-bold hover:bg-opacity-[0.8]"
+                      className={` w-[100%] rounded-[20px] py-3 text-white font-bold hover:bg-opacity-[0.8] ${
+                        items.length !== 0
+                          ? "bg-primary_green"
+                          : " bg-primary_green opacity-50"
+                      }`}
+                      disabled={items.length === 0}
                     >
                       PLACE ORDER
                     </button>

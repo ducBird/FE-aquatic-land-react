@@ -30,8 +30,6 @@ function Products({
   maxPrice,
   showMinMax,
 }: Iprops) {
-  console.log(minPrice);
-  console.log(maxPrice);
   const [currentPage, setCurrentPage] = useState(1);
 
   // dùng 1 state để lưu số lượng hiển thị ban đầu là 8

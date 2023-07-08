@@ -18,25 +18,25 @@ function Product(props: IProps) {
   const { product } = props;
 
   // hàm tính toán và lấy ra giá của variant đầu tiên và giá của option đầu tiên để hiển thị mặc định trên web
-  // const calculateTotalPrice = (product: IProduct) => {
-  //   if (product.variants && product.variants.length > 0) {
-  //     // Nếu sản phẩm có biến thể
-  //     const variant = product.variants[0]; // Giả sử chỉ lấy biến thể đầu tiên
+  const calculateTotalPrice = (product: IProduct) => {
+    if (product.variants && product.variants.length > 0) {
+      // Nếu sản phẩm có biến thể
+      const variant = product.variants[0]; // Giả sử chỉ lấy biến thể đầu tiên
 
-  //     if (variant.options && variant.options.length > 0) {
-  //       // Nếu biến thể có options
-  //       let total = product.price; // Khởi tạo giá tổng bằng giá gốc của sản phẩm
+      if (variant.options && variant.options.length > 0) {
+        // Nếu biến thể có options
+        let total = product.price; // Khởi tạo giá tổng bằng giá gốc của sản phẩm
 
-  //       if (variant.options[0].add_valuation) {
-  //         total += variant.options[0].add_valuation; // Cộng thêm giá của options đầu tiên vào giá tổng
-  //       }
+        if (variant.options[0].add_valuation) {
+          total += variant.options[0].add_valuation; // Cộng thêm giá của options đầu tiên vào giá tổng
+        }
 
-  //       return total;
-  //     }
-  //   }
+        return total;
+      }
+    }
 
-  //   return product.price; // Nếu không có biến thể hoặc không có options, trả về giá gốc
-  // };
+    return product.price; // Nếu không có biến thể hoặc không có options, trả về giá gốc
+  };
   const { add } = useCarts((state) => state);
 
   // state chứa id product được chọn
@@ -74,14 +74,23 @@ function Product(props: IProps) {
   return (
     <>
       <div className="relative border border-gray-300 rounded-md h-[390px] shadow-md">
-        <Link to={link}>
+        <Link to={link} onClick={() => window.scrollTo(0, 0)}>
           <div>
             <img
               src={productItem?.product_image}
               alt="image"
               className="w-[190px] h-[190px] object-contain mx-auto my-7 "
             />
-            <p className="h-[50px]">{productItem?.name}</p>
+            <div>
+              <p className="h-[50px]">{productItem?.name} </p>
+              {productItem?.variants && productItem?.variants.length > 0 ? (
+                <p className="text-primary_green font-bold">
+                  {productItem?.variants?.[0]?.options?.[0]?.value}
+                </p>
+              ) : (
+                ""
+              )}
+            </div>
             <div className="price text-lg text-primary_green mb-1">
               <span
                 className={
@@ -90,11 +99,11 @@ function Product(props: IProps) {
                     : "list-none  font-bold"
                 }
               >
-                {/* {productItem &&
+                {productItem &&
                   numeral(calculateTotalPrice(productItem))
                     .format("0,0")
-                    .replace(/,/g, ".")} */}
-                {numeral(productItem?.price).format("0,0").replace(/,/g, ".")}
+                    .replace(/,/g, ".")}
+                {/* {numeral(productItem?.price).format("0,0").replace(/,/g, ".")} */}
               </span>
               <span
                 className={productItem?.discount ? "pl-2 font-bold" : "hidden"}

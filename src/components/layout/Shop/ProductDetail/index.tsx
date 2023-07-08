@@ -6,15 +6,8 @@ import Product from "../Product";
 import { MdDone } from "react-icons/md";
 import { Link, useParams } from "react-router-dom";
 import { useCarts } from "../../../../hooks/useCart";
-
-interface IProducts {
-  _id: string;
-  category_id: string;
-  sub_category_id: string;
-  name: string;
-  product_image: string;
-  discount: number;
-}
+import { IProduct } from "../../../../interfaces/IProducts";
+import numeral from "numeral";
 interface ICategories {
   _id: string;
   name: string;
@@ -24,45 +17,63 @@ interface ISubCategories {
   name: string;
 }
 interface CartItems {
-  product: IProducts | null;
+  product: IProduct | null;
   quantity: number;
 }
 function ProductDetail() {
   const { add } = useCarts((state) => state);
-  const [product, setProduct] = useState<IProducts | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<Array<IProducts>>([]);
+  const [product, setProduct] = useState<IProduct | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Array<IProduct>>([]);
 
   const [categories, setCategories] = useState<Array<ICategories>>([]);
   const [subCategories, setSubCategories] = useState<Array<ISubCategories>>([]);
 
   const [quantity, setQuantity] = useState<string>("1");
+
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState({
+    value: "",
+    stock: 0,
+  });
   const handleChange = (event) => {
     setQuantity(event.target.value);
   };
   // lấy id từ query của router
   //   const router = useRouter();
+
   const { id } = useParams();
-  useEffect(() => {
-    if (id) {
-      axiosClient.get("/products/product/" + id).then((response) => {
-        setProduct(response.data);
-      });
+  // hàm tính toán và lấy ra giá của variant đầu tiên và giá của option đầu tiên để hiển thị mặc định trên web
+  const calculateTotalPrice = (product: IProduct) => {
+    let total = 0;
+    let discountedTotal = 0;
+    if (product.variants && product.variants.length > 0) {
+      const variant = product.variants[selectedVariantIndex]; // Lấy biến thể được chọn
+
+      if (variant.options && variant.options.length > 0) {
+        const option = variant.options[selectedOptionIndex]; // Lấy option được chọn
+
+        total = product.price; // Khởi tạo giá tổng bằng giá gốc của sản phẩm
+
+        if (option.add_valuation) {
+          total += option.add_valuation; // Cộng thêm giá của option vào giá tổng
+        }
+      }
+    } else {
+      total = product.price;
     }
-  }, [id]);
-
-  // get data categories
-  useEffect(() => {
-    axiosClient.get("/categories").then((response) => {
-      setCategories(response.data);
-    });
-  }, []);
-
-  // get data subcategories
-  useEffect(() => {
-    axiosClient.get("/sub-categories").then((response) => {
-      setSubCategories(response.data);
-    });
-  }, []);
+    if (product.discount) {
+      // Nếu có giảm giá
+      discountedTotal = (total * (100 - product.discount)) / 100;
+    } else {
+      discountedTotal = total;
+    }
+    product.total = discountedTotal; // Cập nhật giá trị total trong product
+    return {
+      total,
+      discountedTotal,
+    }; // Nếu không có biến thể hoặc không có options, trả về giá gốc
+  };
 
   const categoryId = product?.category_id;
   const subCategoryId = product?.sub_category_id;
@@ -72,24 +83,6 @@ function ProductDetail() {
   const subCategoryName = subCategories.find(
     (item) => item._id === subCategoryId
   )?.name;
-
-  // tìm ra các sản phẩm liên quan với product được chọn làm product detail
-  useEffect(() => {
-    if (product) {
-      const fetchRelatedProducts = async () => {
-        try {
-          const response = await axiosClient.get(
-            "/products/" + categoryId + "/sub/" + subCategoryId
-          );
-          setRelatedProducts(response.data);
-        } catch (error) {
-          console.error("Error fetching related products:", error);
-        }
-      };
-
-      fetchRelatedProducts();
-    }
-  }, [product, subCategoryId, categoryId]);
 
   //Loại trừ sản phẩm khỏi danh sách sản phẩm liên quan
   const filteredRelatedProducts = relatedProducts.filter(
@@ -120,6 +113,58 @@ function ProductDetail() {
     });
   };
 
+  useEffect(() => {
+    if (id) {
+      axiosClient.get("/products/product/" + id).then((response) => {
+        setProduct(response.data);
+      });
+    }
+  }, [id]);
+
+  // get data categories
+  useEffect(() => {
+    axiosClient.get("/categories").then((response) => {
+      setCategories(response.data);
+    });
+  }, []);
+
+  // get data subcategories
+  useEffect(() => {
+    axiosClient.get("/sub-categories").then((response) => {
+      setSubCategories(response.data);
+    });
+  }, []);
+  useEffect(() => {
+    if (product && product.variants && product.variants.length > 0) {
+      const variant = product.variants[0]; // Lấy variant đầu tiên
+
+      if (variant.options && variant.options.length > 0) {
+        const option = variant.options[0]; // Lấy option đầu tiên
+        setSelectedOption({
+          value: option.value || "",
+          stock: option.inventory_quantity || 0,
+        });
+      }
+    }
+  }, [product]);
+  // tìm ra các sản phẩm liên quan với product được chọn làm product detail
+  useEffect(() => {
+    if (product) {
+      const fetchRelatedProducts = async () => {
+        try {
+          const response = await axiosClient.get(
+            "/products/" + categoryId + "/sub/" + subCategoryId
+          );
+          setRelatedProducts(response.data);
+        } catch (error) {
+          console.error("Error fetching related products:", error);
+        }
+      };
+
+      fetchRelatedProducts();
+    }
+  }, [product, subCategoryId, categoryId]);
+
   return (
     <div className="m-4 lg:px-20 lg:py-8 py-4">
       <div className="product-detail">
@@ -148,19 +193,75 @@ function ProductDetail() {
             {/* name */}
             <div className="">
               <h3 className="text-2xl text-black font-semibold">
-                {product?.name}
+                {product?.name} - {selectedOption?.value}
               </h3>
             </div>
 
             {/* price */}
             <div className="mt-4 text-primary_green font-bold text-lg">
-              10.000 VNĐ
+              <div className="price text-lg text-primary_green mb-1">
+                <span
+                  className={
+                    product?.discount
+                      ? "line-through text-black"
+                      : "list-none  font-bold"
+                  }
+                >
+                  {product &&
+                    numeral(calculateTotalPrice(product).total)
+                      .format("0,0")
+                      .replace(/,/g, ".")}
+                  {/* {numeral(productItem?.price).format("0,0").replace(/,/g, ".")} */}
+                </span>
+                <span
+                  className={product?.discount ? "pl-2 font-bold" : "hidden"}
+                >
+                  {product &&
+                    numeral(calculateTotalPrice(product).discountedTotal)
+                      .format("0,0")
+                      .replace(/,/g, ".")}
+                </span>
+              </div>
             </div>
 
             {/* Stock */}
-            <div className="flex mt-4">
-              <MdDone className="text-primary_green" size={20} />
-              <p></p>
+            <div className="flex mt-4 items-center gap-2 text-primary_green">
+              <MdDone size={20} />
+              <p>{selectedOption.stock}</p>
+              <p>in stock</p>
+            </div>
+
+            {/* variants */}
+            <div className="variants mt-2">
+              {product &&
+                product.variants.map((variant, variantIndex) => (
+                  <div className="mt-2" key={variantIndex}>
+                    <p>{variant.title}</p>
+                    <div className="flex gap-2 mt-3">
+                      {variant.options.map((option, optionIndex) => (
+                        <button
+                          className={`px-5 py-1 text-black hover:font-bold border rounded-full ${
+                            variantIndex === selectedVariantIndex &&
+                            optionIndex === selectedOptionIndex
+                              ? "bg-primary_green text-white"
+                              : ""
+                          }`}
+                          key={optionIndex}
+                          onClick={() => {
+                            setSelectedVariantIndex(variantIndex);
+                            setSelectedOptionIndex(optionIndex);
+                            setSelectedOption({
+                              value: option?.value || "",
+                              stock: option?.inventory_quantity || 0,
+                            });
+                          }}
+                        >
+                          {option?.value}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
             </div>
 
             {/* quantity */}
@@ -214,7 +315,10 @@ function ProductDetail() {
       <div className="related-products my-7">
         <h4 className="text-xl font-semibold my-4">Related Products</h4>
         <div className="grid gap-x-2 gap-y-2 grid-cols-2 lg:grid-cols-5 text-center mt-5">
-          <Product productItems={filteredRelatedProducts} />
+          {filteredRelatedProducts &&
+            filteredRelatedProducts.map((item) => {
+              return <Product product={item} key={item?._id} />;
+            })}
         </div>
       </div>
     </div>
