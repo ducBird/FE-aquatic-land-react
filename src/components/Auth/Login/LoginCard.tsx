@@ -23,11 +23,12 @@ const LoginCart = (props: Props) => {
     axiosClient
       .post("/customers/login", values)
       .then((response) => {
-        addUser(response.data.user);
+        addUser(response.data);
         window.localStorage.setItem(
           "refresh_token",
           response.data.refresh_token
         );
+        window.localStorage.setItem("access_token", response.data.access_token);
         message.success(response.data.msg);
         setTimeout(() => {
           window.location.href = "/";

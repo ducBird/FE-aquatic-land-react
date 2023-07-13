@@ -42,9 +42,10 @@ export default function Header() {
     setOpenLogin(true);
   };
   const navigate = useNavigate();
-  const userStorage = localStorage.getItem("user-storage") ?? "";
-  const parsedUser = userStorage ? JSON.parse(userStorage) : null;
-  const user = parsedUser && Object.keys(parsedUser.state.users).length !== 0;
+  // const userStorage = localStorage.getItem("user-storage") ?? "";
+  // const parsedUser = userStorage ? JSON.parse(userStorage) : null;
+  // const user = parsedUser && Object.keys(parsedUser.state.users).length !== 0;
+  const refresh_token = localStorage.getItem("refresh_token");
   useEffect(() => {
     const handleSize = () => {
       setWindowSize({
@@ -123,7 +124,7 @@ export default function Header() {
                 </a>
                 <a
                   onClick={() => {
-                    if (user) {
+                    if (refresh_token) {
                       navigate("/history-order-user");
                       window.scrollTo(0, 0);
                     } else {

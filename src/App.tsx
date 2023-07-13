@@ -1,4 +1,5 @@
 import "./App.css";
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/layout/Header";
 import ShoppingCart from "./components/CheckCart/ShoppingCart";
@@ -13,7 +14,22 @@ import Work from "./components/layout/Work/Work";
 import Services from "./components/layout/Services";
 import ActivationEmail from "./components/Auth/ActivationEmail";
 import HistoryOrderUser from "./components/Auth/HistoryOrderUser";
+import { useUser } from "./hooks/useUser";
 function App() {
+  const { initialize, refreshToken } = useUser();
+
+  useEffect(() => {
+    initialize();
+
+    // Thiết lập interval để tự động làm mới token mỗi 10 phút
+    const refreshInterval = setInterval(() => {
+      refreshToken();
+    }, 10 * 60 * 1000);
+
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, []);
   return (
     // <main className="font-roboto relative overfnlow-hidde">
     //   <Header />

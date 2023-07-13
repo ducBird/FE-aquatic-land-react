@@ -66,7 +66,7 @@ const CheckOut = () => {
       order_details: [] as IOrderDetails[],
       total_money_order: totalOrder,
       payment_information: paymentMethod,
-      customer_id: user.state.users._id,
+      customer_id: user.state.users.user._id,
     },
     validationSchema: ordersSchema,
     onSubmit: async (values) => {
@@ -126,7 +126,7 @@ const CheckOut = () => {
       payment_information: paymentMethod,
       payment_status: true,
       total_money_order: totalOrder,
-      customer_id: user.state.users._id,
+      customer_id: user.state.users.user._id,
     };
 
     items.forEach((item) => {

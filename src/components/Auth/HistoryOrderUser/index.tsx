@@ -8,15 +8,15 @@ function HistoryOrderUser() {
   const user = userString ? JSON.parse(userString) : null;
   const [historyOrderUser, setHistoryOrderUser] = useState<Array<IOrders>>([]);
   useEffect(() => {
-    if (user.state.users._id) {
+    if (user.state.users.user._id) {
       axiosClient.get("/orders").then((response) => {
         const filteredOrders = response.data.filter(
-          (order) => order.customer_id === user.state.users._id
+          (order) => order.customer_id === user.state.users.user._id
         );
         setHistoryOrderUser(filteredOrders);
       });
     }
-  }, [user.state.users._id]);
+  }, [user.state.users.user._id]);
   console.log(historyOrderUser);
   return (
     <div className="w-full">
@@ -47,7 +47,7 @@ function HistoryOrderUser() {
               <div className="flex-grow w-[300px]">
                 <input
                   type="text"
-                  value={user.state.users.first_name}
+                  value={user.state.users.user.first_name}
                   className="px-2 py-1 border rounded-md w-full"
                 />
               </div>
@@ -61,7 +61,7 @@ function HistoryOrderUser() {
               <div className="flex-grow w-[300px]">
                 <input
                   type="text"
-                  value={user.state.users.last_name}
+                  value={user.state.users.user.last_name}
                   className="px-2 py-1 border rounded-md w-full"
                 />
               </div>
@@ -75,7 +75,7 @@ function HistoryOrderUser() {
               <div className="flex-grow w-[300px]">
                 <input
                   type="text"
-                  value={user.state.users.email}
+                  value={user.state.users.user.email}
                   className="px-2 py-1 border rounded-md w-full"
                 />
               </div>
