@@ -13,19 +13,21 @@ interface Props {
 const LoginCart = (props: Props) => {
   const { openLogin, setOpenLogin } = props;
   const [loginForm] = Form.useForm();
-  const { addUser } = useUser((state) => state);
+  const { addUser, users } = useUser((state) => state);
 
   const handleLoginClose = () => {
     setOpenLogin(false);
   };
 
   const onLoginFinish = (values: ICustomer) => {
-    console.log(values);
-
     axiosClient
       .post("/customers/login", values)
       .then((response) => {
         addUser(response.data.user);
+        window.localStorage.setItem(
+          "refresh_token",
+          response.data.refresh_token
+        );
         message.success(response.data.msg);
         setTimeout(() => {
           window.location.href = "/";
@@ -38,6 +40,17 @@ const LoginCart = (props: Props) => {
   const onLoginFinishFailed = (err) => {
     console.log("Login Failed:", err);
   };
+  // const getAccessToken = async () => {
+  //   const rf_token = window.localStorage.getItem("refresh_token");
+  //   const res = await axiosClient.post("/customers/refresh-token", {
+  //     rf_token,
+  //   });
+  //   console.log(res.data);
+  //   // const res = await axiosClient.get("/customers", {
+  //   //   headers: { access_token: `Bearer ${users.access_token}` },
+  //   // });
+  //   // console.log(res.data);
+  // };
   return (
     <div>
       <div
@@ -63,52 +76,9 @@ const LoginCart = (props: Props) => {
             <h2 className="text-[18px]">Close</h2>
           </div>
         </div>
+
+        {/* Chỗ cần xem lại không xóa <button onClick={getAccessToken}>test cookie</button> */}
         <div className="px-3 mt-4  border-b">
-          {/* <form action="">
-            <div>
-              <div className="flex">
-                <h1 className="font-bold text-[15px]">
-                  Username or email address
-                </h1>
-                <span className="ml-1 text-red-600 text-[20px]">*</span>
-              </div>
-              <input
-                type="text"
-                className="text-gray-500 outline-none border w-[100%] h-[40px] px-2"
-              />
-            </div>
-            <div className="mt-3">
-              <div className="flex">
-                <h1 className="font-bold text-[15px]">Password</h1>
-                <span className="ml-1 text-red-600 text-[20px]">*</span>
-              </div>
-              <input
-                type="password"
-                className="text-gray-500 outline-none border w-[100%] h-[40px] px-2"
-              />
-            </div>
-            <button className="w-[100%] mt-5 py-2 rounded-[20px] text-white font-bold bg-primary_green hover:opacity-[0.9]">
-              LOGIN
-            </button>
-            <div className="flex justify-between items-center my-5">
-              <div className="text-[15px] font-bold flex">
-                <label
-                  htmlFor="remember-checkbox"
-                  className="cursor-pointer flex"
-                >
-                  <input
-                    type="checkbox"
-                    id="remember-checkbox"
-                    className="mr-[4px]"
-                  />
-                  <span>Remember me</span>
-                </label>
-              </div>
-              <h2 className="text-[15px] text-primary_green cursor-pointer hover:opacity-[0.7]">
-                Lost your password?
-              </h2>
-            </div>
-          </form> */}
           <Form
             form={loginForm}
             name="login-form"

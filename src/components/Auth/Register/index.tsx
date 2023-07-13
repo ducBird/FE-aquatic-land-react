@@ -14,7 +14,14 @@ const Register = () => {
   const [registerForm] = Form.useForm();
 
   const onRegisterFinish = (values) => {
-    console.log("register finished");
+    axiosClient
+      .post("/customers/register", values)
+      .then((response) => {
+        message.success(response.data.msg);
+      })
+      .catch((err) => {
+        message.error(err.response.data.msg);
+      });
   };
   const onRegisterFinishFailed = (err) => {
     console.log("Failed:", err);
@@ -24,6 +31,10 @@ const Register = () => {
       .post("/customers/login", values)
       .then((response) => {
         addUser(response.data.user);
+        window.localStorage.setItem(
+          "refresh_token",
+          response.data.refresh_token
+        );
         message.success(response.data.msg);
         setTimeout(() => {
           window.location.href = "/";
@@ -59,33 +70,84 @@ const Register = () => {
                 >
                   <div className="flex">
                     <h2 className="mb-2 text-[15px] font-medium">
-                      Email address
+                      Họ - Tên đệm
                     </h2>
-                    <span className="ml-1 text-red-600 text-[20px]">*</span>
                   </div>
                   <Form.Item
-                    name="username"
+                    name="first_name"
                     rules={[
-                      {
-                        required: true,
-                        message: "Please input your email address!",
-                      },
+                      { required: true, message: "Chưa nhập Họ - tên đệm!" },
                     ]}
+                    hasFeedback
                   >
                     <Input className="outline-none border border-gray-400 h-[40px]" />
                   </Form.Item>
                   <div className="flex">
-                    <h2 className="mb-2 text-[15px] font-medium">Password</h2>
-                    <span className="ml-1 text-red-600 text-[20px]">*</span>
+                    <h2 className="mb-2 text-[15px] font-medium">Tên</h2>
+                  </div>
+                  <Form.Item
+                    name="last_name"
+                    rules={[{ required: true, message: "Chưa nhập Tên!" }]}
+                    hasFeedback
+                  >
+                    <Input className="outline-none border border-gray-400 h-[40px]" />
+                  </Form.Item>
+                  <div className="flex">
+                    <h2 className="mb-2 text-[15px] font-medium">Email</h2>
+                  </div>
+                  <Form.Item
+                    name="email"
+                    rules={[
+                      { required: true, message: "Chưa nhập thư điện tử!" },
+                      { type: "email", message: "Thư điện tử không đúng" },
+                    ]}
+                    hasFeedback
+                  >
+                    <Input className="outline-none border border-gray-400 h-[40px]" />
+                  </Form.Item>
+                  <div className="flex">
+                    <h2 className="mb-2 text-[15px] font-medium">Mật khẩu</h2>
                   </div>
                   <Form.Item
                     name="password"
                     rules={[
+                      { required: true, message: "Chưa nhập mật khẩu!" },
                       {
-                        required: true,
-                        message: "Please input your password!",
+                        min: 5,
+                        max: 50,
+                        message: "Độ dài mật khẩu từ 5-50 kí tự",
                       },
                     ]}
+                  >
+                    <Input.Password className="outline-none border border-gray-400 h-[40px]" />
+                  </Form.Item>
+
+                  <div className="flex">
+                    <h2 className="mb-2 text-[15px] font-medium">
+                      Xác nhận mật khẩu
+                    </h2>
+                  </div>
+                  <Form.Item
+                    name="confirmPassword"
+                    dependencies={["password"]}
+                    hasFeedback
+                    rules={[
+                      {
+                        required: true,
+                        message: "Hãy xác nhận lại mật khẩu!",
+                      },
+                      ({ getFieldValue }) => ({
+                        validator(_, value) {
+                          if (!value || getFieldValue("password") === value) {
+                            return Promise.resolve();
+                          }
+                          return Promise.reject(
+                            new Error("Mật khẩu xác nhận không đúng!")
+                          );
+                        },
+                      }),
+                    ]}
+                    className="pb-3"
                   >
                     <Input.Password className="outline-none border border-gray-400 h-[40px]" />
                   </Form.Item>

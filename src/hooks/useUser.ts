@@ -14,7 +14,6 @@ export const useUser = create(
       addUser: (customer: ICustomer) => {
         const users = get().users;
         Object.assign(users, customer);
-        delete users.password;
         return set((state) => ({ users: users }), false, {
           type: "addUser",
         });
