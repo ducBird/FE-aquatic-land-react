@@ -11,6 +11,7 @@ import Shop from "./components/layout/Shop";
 import ProductDetail from "./components/layout/Shop/ProductDetail";
 import Work from "./components/layout/Work/Work";
 import Services from "./components/layout/Services";
+import HistoryOrderUser from "./components/Auth/HistoryOrderUser";
 function App() {
   return (
     // <main className="font-roboto relative overfnlow-hidde">
@@ -48,6 +49,7 @@ function App() {
 
             <Route path="/search-products" element={<Shop />} />
             <Route path="/services" element={<Services />} />
+            <Route path="/history-order-user" element={<HistoryOrderUser />} />
 
             <Route
               path="*"

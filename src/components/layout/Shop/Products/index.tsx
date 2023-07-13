@@ -1,11 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
-import { axiosClient } from "../../../../libraries/axiosClient";
-// import { useRouter } from "next/router";
 import Product from "../Product";
-// import Link from "next/link";
 import { motion } from "framer-motion";
-import { Link, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { IProduct } from "../../../../interfaces/IProducts";
 
 interface Iprops {
@@ -204,7 +201,7 @@ function Products({
         ""
       )}
 
-      <div className="w-full grid gap-2 grid-cols-2 lg:grid-cols-4 text-center mt-5">
+      <div className="w-full grid gap-2 grid-cols-2 lg:grid-cols-3 text-center mt-5">
         {productItems.length > 0 ? (
           productItems.map((item) => {
             return <Product product={item} key={item?._id} />;

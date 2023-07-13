@@ -5,13 +5,17 @@ import { MdProductionQuantityLimits } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import numeral from "numeral";
+import { CartItems } from "../../../interfaces/ICartItems";
+import { IProduct } from "../../../interfaces/IProducts";
 const ShoppingCart = () => {
   // zustand
-  const { items, remove, updateQuantity } = useCarts((state) => state);
+  const { items, remove, updateQuantity } = useCarts((state) => state) as any;
+
   // Tạo state quantity cho từng sản phẩm
   const [quantities, setQuantities] = useState<number[]>(
     items.map((item) => item.quantity)
   );
+
   const totalOrder = items.reduce((total, item) => {
     return total + item.product.total * item.quantity;
   }, 0);
@@ -51,9 +55,12 @@ const ShoppingCart = () => {
     // Lặp qua mảng sản phẩm và cập nhật số lượng
     items.forEach((item, index) => {
       const updatedQuantity = quantities[index];
-
+      const CartUpdate: CartItems = {
+        product: item.product as IProduct,
+        quantity: updatedQuantity,
+      };
       // Gọi hàm updateQuantity từ hook useCarts để cập nhật số lượng cho sản phẩm
-      updateQuantity(item.product._id, updatedQuantity);
+      updateQuantity(CartUpdate);
     });
 
     // Đặt lại state quantityChange về false sau khi đã cập nhật số lượng

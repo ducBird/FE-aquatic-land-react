@@ -11,6 +11,7 @@ import Cart from "../../../components/Cart";
 import LoginCart from "../../Auth/Login/LoginCard";
 import AquaticLogo from "../../../assets/ImageAquaticLand.png";
 import { useCarts } from "../../../hooks/useCart";
+import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const [openLogin, setOpenLogin] = React.useState(false);
@@ -21,6 +22,13 @@ export default function Header() {
     height: 0,
   });
   const [isMobile, setIsMobile] = useState(false);
+  // zustand
+  const { items } = useCarts((state) => state) as any;
+  const quantityCart = items.reduce((total, item) => {
+    // cast biến item sang kiểu dữ liệu number
+    const cartItem = item as { quantity: number };
+    return total + cartItem.quantity;
+  }, 0);
   const handleMenu = () => {
     setOpenMenu(true);
   };
@@ -33,6 +41,10 @@ export default function Header() {
   const handleLogin = () => {
     setOpenLogin(true);
   };
+  const navigate = useNavigate();
+  const userStorage = localStorage.getItem("user-storage") ?? "";
+  const parsedUser = userStorage ? JSON.parse(userStorage) : null;
+  const user = parsedUser && Object.keys(parsedUser.state.users).length !== 0;
   useEffect(() => {
     const handleSize = () => {
       setWindowSize({
@@ -53,13 +65,7 @@ export default function Header() {
     }
     // console.log(windowSize);
   }, [windowSize]);
-  // zustand
-  const { items } = useCarts((state) => state);
-  const quantityCart = items.reduce((total, item) => {
-    // cast biến item sang kiểu dữ liệu number
-    const cartItem = item as { quantity: number };
-    return total + cartItem.quantity;
-  }, 0);
+
   return (
     <main className="relative w-full">
       <div className="mobile-header w-full fixed z-10 bg-white">
@@ -116,7 +122,14 @@ export default function Header() {
                   </span>
                 </a>
                 <a
-                  onClick={handleLogin}
+                  onClick={() => {
+                    if (user) {
+                      navigate("/history-order-user");
+                      window.scrollTo(0, 0);
+                    } else {
+                      handleLogin();
+                    }
+                  }}
                   className="flex justify-center items-center h-[40px] leading-none px-[10px] text-gray-800 cursor-pointer"
                 >
                   <span className="relative flex item-center justify-center">

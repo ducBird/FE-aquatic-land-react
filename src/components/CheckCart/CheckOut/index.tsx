@@ -7,6 +7,8 @@ import { axiosClient } from "../../../libraries/axiosClient";
 import { useCarts } from "../../../hooks/useCart";
 import numeral from "numeral";
 import { PayPalButton } from "react-paypal-button-v2";
+import { Link } from "react-router-dom";
+import LoginCart from "../../Auth/Login/LoginCard";
 interface typeCity {
   id: string;
   city: string;
@@ -42,13 +44,17 @@ const CheckOut = () => {
   const [sdkReady, setSdkReady] = useState(false);
   const [city, setCity] = React.useState([]);
   //chứa tên tp vừa chọn
-  const [selectedCity, setSelectedCity] = React.useState<typeCity>();
+  // const [selectedCity, setSelectedCity] = React.useState<typeCity>();
+  const [openLogin, setOpenLogin] = React.useState(false);
   // hàm để set lại giá trị khi chọn các phương thức thanh toán
   // zustand
-  const { items } = useCarts((state) => state);
+  const { items } = useCarts((state) => state) as any;
   const totalOrder = items.reduce((total, item) => {
     return total + item.product.total * item.quantity;
   }, 0);
+  const userString = localStorage.getItem("user-storage");
+  const user = userString ? JSON.parse(userString) : null;
+  const userLogin = user && Object.keys(user.state.users).length !== 0;
   const formik = useFormik({
     initialValues: {
       first_name: "",
@@ -60,6 +66,7 @@ const CheckOut = () => {
       order_details: [] as IOrderDetails[],
       total_money_order: totalOrder,
       payment_information: paymentMethod,
+      customer_id: user.state.users._id,
     },
     validationSchema: ordersSchema,
     onSubmit: async (values) => {
@@ -75,13 +82,17 @@ const CheckOut = () => {
         .post("/orders", values)
         .then(() => {
           window.alert("Đặt hàng thành công");
+          window.localStorage.removeItem("cart-storage");
+          window.location.reload(); // Tải lại trang
         })
         .catch(() => {
           window.alert("Đặt hàng thất bại");
         });
     },
   });
-
+  const handleLogin = () => {
+    setOpenLogin(true);
+  };
   React.useEffect(() => {
     axios
       .get("https://63528f71a9f3f34c3741633b.mockapi.io/api/v1/users")
@@ -115,7 +126,7 @@ const CheckOut = () => {
       payment_information: paymentMethod,
       payment_status: true,
       total_money_order: totalOrder,
-      // Populate the order details based on items
+      customer_id: user.state.users._id,
     };
 
     items.forEach((item) => {
@@ -128,8 +139,11 @@ const CheckOut = () => {
 
     try {
       // Send the order data to the server
-      const response = await axiosClient.post("/orders", orderData);
+      await axiosClient.post("/orders", orderData);
       window.alert("Đặt hàng thành công");
+      window.localStorage.removeItem("cart-storage");
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // Đợi 5 giây
+      window.location.reload(); // Tải lại trang
     } catch (error) {
       console.error(error);
       window.alert("Đặt hàng thất bại");
@@ -179,8 +193,14 @@ const CheckOut = () => {
         return;
       }
 
-      console.log("orderData", orderData);
       if (orderData !== null) {
+        items.forEach((item) => {
+          const orderDetail = {
+            product_id: item.product._id,
+            quantity: item.quantity,
+          };
+          orderData.order_details.push(orderDetail);
+        });
         // Cập nhật giá trị payment_information thành "vnpay"
         orderData.payment_information = "vnpay";
 
@@ -189,6 +209,8 @@ const CheckOut = () => {
           await axiosClient.post("/orders", orderData);
           window.alert("Đặt hàng thành công");
           window.localStorage.removeItem("formValues");
+          window.localStorage.removeItem("cart-storage");
+          window.location.reload(); // Tải lại trang
           window.location.replace(
             "http://127.0.0.1:3000/component/checkcart/checkout"
           );
@@ -212,8 +234,9 @@ const CheckOut = () => {
       phoneNumber: "Số điện thoại",
       email: "Email",
       order_details: "Thông tin đơn hàng",
-      total_money_order: "Tổng tiền đơn hàng",
+      total_money_order: "Chọn sản phẩm cần mua",
       payment_information: "Thông tin thanh toán",
+      customer_id: "tài khoản",
     };
 
     const missingFields: string[] = [];
@@ -257,18 +280,18 @@ const CheckOut = () => {
     onSuccessVnpay();
   }, []);
 
-  const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const cityId = event.target.value;
-    // console.log("cityid", cityId);
-    const selectCity = city.find((city: typeCity) => city.id === cityId);
-    console.log("selected city", selectCity);
-    if (selectCity) {
-      setSelectedCity(selectCity);
-      formik.setFieldValue("shipping_city", selectCity.city);
-      // setIsCity(selectCity.city);
-      // set lại initialValue có giá trị đã thay đổi
-    }
-  };
+  // const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  //   const cityId = event.target.value;
+  //   // console.log("cityid", cityId);
+  //   const selectCity = city.find((city: typeCity) => city.id === cityId);
+  //   console.log("selected city", selectCity);
+  //   if (selectCity) {
+  //     setSelectedCity(selectCity);
+  //     formik.setFieldValue("shipping_city", selectCity.city);
+  //     // setIsCity(selectCity.city);
+  //     // set lại initialValue có giá trị đã thay đổi
+  //   }
+  // };
 
   // React.useEffect(() => {
   //   console.log("location", isLocation);
@@ -601,7 +624,7 @@ const CheckOut = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {items &&
+                      {items.length > 0 ? (
                         items.map((item, index) => {
                           return (
                             <tr
@@ -643,7 +666,16 @@ const CheckOut = () => {
                               </td>
                             </tr>
                           );
-                        })}
+                        })
+                      ) : (
+                        <Link to="/shop">
+                          <div className="p-3 text-center cursor-pointer">
+                            <p className="py-1 px-4 border bg-primary_green text-white rounded-full">
+                              Return to shop
+                            </p>
+                          </div>
+                        </Link>
+                      )}
                     </tbody>
                     <tfoot>
                       <tr className="flex justify-between p-3  border-t-2">
@@ -689,7 +721,7 @@ const CheckOut = () => {
                   checkInput === 0 ? (
                     <div className="z-0">
                       <PayPalButton
-                        amount={totalOrder / 20000}
+                        amount={parseFloat((totalOrder / 20000).toFixed(2))}
                         // shippingPreference="NO_SHIPPING" // default is "GET_FROM_FILE"
                         onSuccess={onSuccessPaypal}
                         onError={(error) => {
@@ -706,7 +738,13 @@ const CheckOut = () => {
                           ? "bg-primary_green"
                           : " bg-primary_green opacity-50"
                       }`}
-                      disabled={items.length === 0}
+                      disabled={!userLogin && items.length === 0}
+                      onClick={() => {
+                        if (!userLogin) {
+                          alert("Please login");
+                          handleLogin();
+                        }
+                      }}
                     >
                       PLACE ORDER
                     </button>
@@ -752,6 +790,7 @@ const CheckOut = () => {
           </div>
         </div>
       </div> */}
+      <LoginCart openLogin={openLogin} setOpenLogin={setOpenLogin} />
     </>
   );
 };
