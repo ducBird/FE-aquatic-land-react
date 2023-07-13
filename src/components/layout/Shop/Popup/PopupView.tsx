@@ -27,7 +27,11 @@ interface IModalProps {
   closePopup: () => void;
 }
 
-const Popup: React.FC<IModalProps> = ({ closePopup, showPopup, productId }) => {
+const PopupView: React.FC<IModalProps> = ({
+  closePopup,
+  showPopup,
+  productId,
+}) => {
   const [product, setProduct] = useState<IProduct | null>(null);
   useEffect(() => {
     // Thêm hoặc xóa thanh scoll khi showModal thay đổi
@@ -76,4 +80,4 @@ const Popup: React.FC<IModalProps> = ({ closePopup, showPopup, productId }) => {
   );
 };
 
-export default Popup;
+export default PopupView;

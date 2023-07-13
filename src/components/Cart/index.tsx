@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { MdOutlineClose, MdProductionQuantityLimits } from "react-icons/md";
 import { BsFillCartXFill } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
-import { useCarts } from "../../hooks/useCart";
+import { IRemoveCartItem, useCarts } from "../../hooks/useCart";
 import numeral from "numeral";
 import "./index.css";
+import { IProduct } from "../../interfaces/IProducts";
 interface Props {
   openCart: boolean;
   setOpenCart: React.Dispatch<React.SetStateAction<boolean>>;
@@ -18,11 +19,12 @@ const Cart = (props: Props) => {
     window.scrollTo(0, 0);
   };
   const [products, setProducts] = useState(true);
-  const { items, remove } = useCarts((state) => state);
+  const { items, remove } = useCarts((state) => state) as any;
 
   const totalOrder = items.reduce((total, item) => {
     return total + item.product.total * item.quantity;
   }, 0);
+
   return (
     <div className="overflow-y-auto">
       <div
@@ -55,11 +57,14 @@ const Cart = (props: Props) => {
             className="h-[100vh] mb-5 overflow-y-auto scrollbar"
             style={{ maxHeight: "calc(100vh - 100px)" }}
           >
-            <div className="h-[65vh] border-b">
+            <div className="h-[65vh] border-b overflow-y-auto">
               {items.length > 0 ? (
                 <ul className="h-full">
                   {items.length > 0 &&
                     items.map((item, index) => {
+                      const removeCart: IRemoveCartItem = {
+                        product: item.product as IProduct,
+                      };
                       return (
                         <li className="border-b" key={index}>
                           <div className="relative flex py-3 px-2 h-auto">
@@ -90,7 +95,9 @@ const Cart = (props: Props) => {
                             </div>
                             <button
                               className="absolute top-1 right-2 cursor-pointer text-[20px] text-red-500"
-                              onClick={() => remove(item.product._id)}
+                              onClick={() => {
+                                remove(removeCart);
+                              }}
                             >
                               <AiOutlineClose size={15} />
                             </button>

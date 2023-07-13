@@ -324,6 +324,7 @@ function SideBar({
             value={sliderValue}
             onChange={handleSliderChange}
             range
+            className="z-0"
           />
         </div>
         <div className="flex text-lg">

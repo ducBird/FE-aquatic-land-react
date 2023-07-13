@@ -4,5 +4,5 @@ export interface IVariants {
   _id: string;
   price_adjustment: number;
   title: string;
-  options: [IVariantOptions];
+  options: IVariantOptions[] | null;
 }

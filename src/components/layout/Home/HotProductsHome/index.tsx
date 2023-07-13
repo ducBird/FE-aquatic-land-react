@@ -1,15 +1,10 @@
-import { Link } from "react-router-dom";
 import { IProduct } from "../../../../interfaces/IProducts";
-import { useCarts } from "../../../../hooks/useCart";
-import { CartItems } from "../../../../interfaces/ICartItems";
-import numeral from "numeral";
 import Product from "../../Shop/Product";
 interface IProductsProps {
   products: IProduct[];
 }
 
 function HotProductsHome(props: IProductsProps) {
-  const { add } = useCarts((state) => state);
   const { products } = props;
   const findProductsDiscount = products.filter((product) => {
     return product.discount >= 10;
@@ -30,7 +25,7 @@ function HotProductsHome(props: IProductsProps) {
             return (
               <div
                 key={index}
-                className="w-[250px] text-center border mb-5 justify-center rounded-md
+                className="w-[270px] text-center border mb-5 justify-center rounded-md
     shadow-md "
               >
                 <Product product={item} key={item?._id} />

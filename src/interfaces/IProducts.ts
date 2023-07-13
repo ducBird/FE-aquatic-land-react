@@ -2,7 +2,7 @@ import { ICategory } from "./ICategory";
 import { IVariants } from "./IVariants";
 
 export interface IProduct {
-  _id: string;
+  _id: string | undefined;
   category_id: string;
   sub_category_id: string;
   name: string;

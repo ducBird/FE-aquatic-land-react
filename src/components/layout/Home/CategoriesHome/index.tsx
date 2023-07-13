@@ -5,7 +5,6 @@ import { ICategory } from "../../../../interfaces/ICategory";
 import { IProduct } from "../../../../interfaces/IProducts";
 import { Link } from "react-router-dom";
 import { CartItems } from "../../../../interfaces/ICartItems";
-import { useCarts } from "../../../../hooks/useCart";
 import numeral from "numeral";
 import Product from "../../Shop/Product";
 interface IProps {
@@ -18,7 +17,6 @@ function CategoriesHome(props: IProps) {
   const findProductByCategoryName = products.filter(
     (product) => product.category.name === filter
   );
-  const { add } = useCarts((state) => state);
 
   return (
     <div className="mt-16">
@@ -68,18 +66,13 @@ function CategoriesHome(props: IProps) {
             );
           })}
       </div>
-      <div className="w-full lg:flex lg:items-center lg:justify-center gap-5 mt-5">
+      <div className="w-full lg:flex lg:items-center lg:justify-center gap-3 mt-5">
         {findProductByCategoryName &&
           findProductByCategoryName.map((item, index) => {
-            const Cart: CartItems = {
-              product: item,
-              quantity: 1,
-            };
-
             return (
               <div
                 key={index}
-                className="w-[70%] lg:w-[230px] text-center border mb-5 justify-center rounded-md
+                className="w-[70%] lg:w-[290px] text-center border mb-5 justify-center rounded-md
                             shadow-md mx-auto lg:mx-0"
               >
                 <Product product={item} key={item?._id} />

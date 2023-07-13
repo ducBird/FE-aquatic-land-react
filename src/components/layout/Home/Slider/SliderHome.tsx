@@ -1,12 +1,12 @@
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
-import { IProducts } from "../../../../interfaces/IProducts";
+import { IProduct } from "../../../../interfaces/IProducts";
 import "./slider.css";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 interface IProductProps {
-  products: IProducts[];
+  products: IProduct[];
 }
 function SliderHome(props: IProductProps) {
   const { products } = props;
