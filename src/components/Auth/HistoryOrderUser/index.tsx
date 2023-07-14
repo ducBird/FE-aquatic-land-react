@@ -80,6 +80,15 @@ function HistoryOrderUser() {
                 />
               </div>
             </div>
+            <button
+              className="border border-red-600 px-5 py-2 mt-3 bg-red-600 text-white rounded-md"
+              onClick={() => {
+                localStorage.clear();
+                window.location.href = "/";
+              }}
+            >
+              Logout
+            </button>
           </div>
         )}
       </div>
