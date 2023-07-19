@@ -13,7 +13,7 @@ interface Props {
 const LoginCart = (props: Props) => {
   const { openLogin, setOpenLogin } = props;
   const [loginForm] = Form.useForm();
-  const { addUser, users } = useUser((state) => state);
+  const { addUser } = useUser((state) => state) as any;
 
   const handleLoginClose = () => {
     setOpenLogin(false);
