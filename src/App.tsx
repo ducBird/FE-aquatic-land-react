@@ -15,6 +15,7 @@ import Services from "./components/layout/Services";
 import ActivationEmail from "./components/Auth/ActivationEmail";
 import HistoryOrderUser from "./components/Auth/HistoryOrderUser";
 import { useUser } from "./hooks/useUser";
+import WishList from "./components/Wishlist";
 function App() {
   const { users, initialize, refreshToken } = useUser((state) => state) as any;
 
@@ -70,6 +71,7 @@ function App() {
             <Route path="/search-products" element={<Shop />} />
             <Route path="/services" element={<Services />} />
             <Route path="/history-order-user" element={<HistoryOrderUser />} />
+            <Route path="/wishlist" element={<WishList />} />
 
             <Route
               path="/customers/activate/:activation_token"

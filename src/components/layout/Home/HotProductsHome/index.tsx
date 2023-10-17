@@ -13,10 +13,10 @@ function HotProductsHome(props: IProductsProps) {
     <div className="mt-16 w-full">
       <p
         className="md:text-2xl text-xl font-semibold capitalize text-headingColor 
-      relative before:absolute before:rounded-lg before:content before:w-[120px] lg:before:w-36
+      relative before:absolute before:rounded-lg before:content before:w-[165px] lg:before:w-[198px]
       before:h-1 before:-bottom-2 before:left-0 before:bg-gradient-to-tr from-primary_green to-green-700 mr-auto"
       >
-        Hot Products
+        Sản Phẩm Nổi Bật
       </p>
 
       <div className="w-full mt-9 grid grid-flow-col gap-3 overflow-x-auto text-center">

@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
 import numeral from "numeral";
+import { IProduct } from "../../../../interfaces/IProducts";
 interface ICategories {
   _id: string;
   name: string;
@@ -19,13 +20,6 @@ interface ISubCategories {
   _id: string;
   category_id: string;
   name: string;
-}
-interface IProducts {
-  _id: string;
-  category_id: string;
-  sub_category_id: string;
-  name: string;
-  product_image: string;
 }
 
 interface CurrentCategory {
@@ -53,8 +47,8 @@ function SideBar({
   >(null);
 
   // products
-  const [products, setProducts] = useState<Array<IProducts>>([]);
-
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [searchProducts, setSearchProducts] = useState<IProduct[]>([]);
   // xử lý click tìm kiếm
   const [searchValue, setSearchValue] = useState<string>("");
   // const router = useRouter();
@@ -62,7 +56,7 @@ function SideBar({
   const { subCategoryId } = useParams();
 
   const [sliderValue, setSliderValue] = useState([0, 1000000]); // Giá trị ban đầu của thanh trượt là từ 0 đến 100
-
+  const formattedValue = searchValue.replace(/\s+/g, "+");
   useEffect(() => {
     setCategoryCurrent({ category_id: null, sub_category_id: null });
     const url = window.location.href;
@@ -81,20 +75,27 @@ function SideBar({
       sub_category_id: subCategoryId,
     });
   }, [categoryId, subCategoryId]);
-
   // get data products
   useEffect(() => {
     const fetchDataProducts = async () => {
       try {
         const response = await axiosClient.get("/products");
         setProducts(response.data);
+        if (formattedValue) {
+          const filteredProducts = response.data.filter((product) => {
+            return product.name
+              .toLowerCase()
+              .includes(formattedValue.toLowerCase());
+          });
+          setSearchProducts(filteredProducts);
+        } else setSearchProducts([]);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
     };
 
     fetchDataProducts();
-  }, []);
+  }, [formattedValue]);
 
   // hàm dùng để mở hoặc đóng category
   const toggleCategory = (
@@ -132,17 +133,19 @@ function SideBar({
   const handleSearch = () => {
     if (searchValue.trim() !== "") {
       navigate(`/search-products?name=${formattedValue}`);
+      setSearchProducts([]);
     } else {
       alert("Please enter your information in the search box ");
     }
   };
-  const formattedValue = searchValue.replace(/\s+/g, "+");
+
   const navigate = useNavigate();
   // hàm dùng để sử dụng phím enter để tìm kiếm
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       handleSearch();
       closeSitebarOnClick();
+      setSearchProducts([]);
     }
   };
 
@@ -155,12 +158,12 @@ function SideBar({
     <>
       <div className="search-sitebar ">
         {/* search */}
-        <p className="text-md font-semibold">SEARCH</p>
+        <p className="text-md font-semibold">Tìm kiếm</p>
         <div className="relative border border-gray-300 w-full mt-4 rounded-md h-12 flex">
           <input
             type="text"
-            className="w-[85%] h-full rounded-md border-none pl-4"
-            placeholder=" Search for products"
+            className="w-[85%] h-full rounded-md border-none pl-4 focus:outline-none"
+            placeholder="Tìm kiếm sản phẩm"
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -183,13 +186,99 @@ function SideBar({
             </Link>
           </div>
         </div>
+        {searchValue !== "" ? (
+          <div className="absolute search-result max-h-[306px] overflow-y-auto bg-white border w-[350px] lg:w-[266px]">
+            {searchProducts.length > 0 && (
+              <p className="m-2">
+                {" "}
+                Kết quả tìm kiếm:{" "}
+                <span className="text-primary_green">
+                  {searchProducts.length}
+                </span>
+              </p>
+            )}
+
+            {searchProducts.length > 0 ? (
+              searchProducts.map((item) => {
+                // Lấy ra danh sách các variant từ sản phẩm
+                const variants = item?.variants || [];
+                // Khởi tạo giá mới bằng giá ban đầu
+                let newPrice = numeral(item?.price).value();
+                const discount = numeral(item?.discount).value();
+                // Lặp qua danh sách các variant
+                for (const variant of variants) {
+                  // Kiểm tra xem variant có options không
+                  if (variant.options && variant.options.length > 0) {
+                    // Lấy giá của option đầu tiên trong variant
+                    const optionPrice = numeral(
+                      variant.options[0].add_valuation
+                    ).value();
+
+                    // Cộng giá của option đầu tiên vào giá mới
+                    newPrice += optionPrice;
+                  }
+                }
+                const totalDiscount = (newPrice * (100 - discount)) / 100;
+                return (
+                  <Link
+                    to={`/shop/product/${item?._id}`}
+                    onClick={() => {
+                      closeSitebarOnClick();
+                      window.scrollTo(0, 0);
+                    }}
+                  >
+                    <div className="border-b flex my-3">
+                      <img
+                        src={item?.product_image}
+                        alt="image"
+                        className="w-[100px] h-[100px] lg:w-[70px] lg:h-[70px] object-contain ml-2"
+                      />
+                      <div className="ml-3 text-sm lg:text-xs">
+                        <p className="font-bold ">{item?.name} </p>
+                        <div className="price text-primary_green mb-3 mt-3">
+                          <span
+                            className={
+                              item?.discount
+                                ? "line-through text-black"
+                                : "list-none  font-bold"
+                            }
+                          >
+                            {numeral(newPrice).format("0,0").replace(/,/g, ".")}{" "}
+                            vnđ
+                          </span>
+                          <span
+                            className={
+                              item?.discount ? "pl-2 font-bold" : "hidden"
+                            }
+                          >
+                            {numeral(totalDiscount)
+                              .format("0,0")
+                              .replace(/,/g, ".")}{" "}
+                            vnđ
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
+            ) : products.every(
+                (item) =>
+                  !item.name.toLowerCase().includes(searchValue.toLowerCase())
+              ) ? (
+              <p className="p-3 text-primary_green">Không tìm thấy sản phẩm</p>
+            ) : null}
+          </div>
+        ) : (
+          ""
+        )}
       </div>
       {/* border-b */}
       <div className="border border-b-0 mt-7"></div>
 
       {/* categories */}
       <div className="categories-sitebar mt-4">
-        <p className="text-md font-semibold">CATEGORIES</p>
+        <p className="text-md font-semibold">Danh mục</p>
         <ul>
           {categories &&
             categories.map((category) => {
@@ -328,7 +417,7 @@ function SideBar({
           />
         </div>
         <div className="flex text-lg">
-          <p>Price:</p>
+          <p>Giá:</p>
           <p className="ml-2 font-bold">
             {numeral(sliderValue[0]).format("0,0")} -{" "}
             {numeral(sliderValue[1]).format("0,0")}
@@ -341,7 +430,7 @@ function SideBar({
           }}
           className="border py-1 px-4 rounded-full bg-primary_green text-white font-bold mt-2"
         >
-          FILTER
+          Lọc
         </button>
       </div>
     </>

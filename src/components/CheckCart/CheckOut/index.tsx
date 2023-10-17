@@ -66,11 +66,12 @@ const CheckOut = () => {
       order_details: [] as IOrderDetails[],
       total_money_order: totalOrder,
       payment_information: paymentMethod,
-      customer_id: user.state.users.user._id,
+      customer_id: user.state.users.user ? user.state.users.user._id : "",
     },
     validationSchema: ordersSchema,
     onSubmit: async (values) => {
       values.order_details = [];
+      values.customer_id = user.state.users.user._id;
       items.forEach((item) => {
         const orderDetail: IOrderDetails = {
           product_id: item.product._id,
@@ -130,6 +131,7 @@ const CheckOut = () => {
     };
 
     items.forEach((item) => {
+      // orderData.customer_id = user.state.users.user._id;
       const orderDetail = {
         product_id: item.product._id,
         quantity: item.quantity,
@@ -194,6 +196,8 @@ const CheckOut = () => {
       }
 
       if (orderData !== null) {
+        orderData.customer_id = user.state.users.user._id;
+        orderData.payment_status = true;
         items.forEach((item) => {
           const orderDetail = {
             product_id: item.product._id,
@@ -263,17 +267,45 @@ const CheckOut = () => {
     }
     // Lưu các giá trị vào localStorage trước khi chuyển hướng đến trang thanh toán Vnpay
     localStorage.setItem("formValues", JSON.stringify(formik.values));
-    const paymentUrl = await axiosClient.post("/payment/create_payment_url", {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      amount: totalOrder,
-      bankCode: "NCB",
-      orderDescription: "thanh toan don hang test",
-      orderType: "other",
-      language: "vn",
-    });
+    const paymentUrl = await axiosClient.post(
+      "/payment/create_paymentVnpay_url",
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        amount: totalOrder,
+        bankCode: "NCB",
+        orderDescription: "thanh toan don hang test",
+        orderType: "other",
+        language: "vn",
+      }
+    );
+    console.log(paymentUrl);
     window.location.replace(paymentUrl.data);
+  };
+
+  // momo
+  const paymentMoMoClick = async () => {
+    const inputValid = await checkInputData();
+    if (inputValid === false) {
+      return;
+    }
+
+    // Lưu các giá trị vào localStorage trước khi gọi endpoint tạo URL thanh toán
+    localStorage.setItem("formValues", JSON.stringify(formik.values));
+
+    try {
+      const response = await axiosClient.post(
+        "/payment/create_paymentMoMo_url",
+        {}
+      );
+      const payUrl = response.data.payUrl;
+      console.log("res", response);
+      // Chuyển hướng đến URL thanh toán Momo
+      // window.location.replace(payUrl);
+    } catch (error) {
+      console.error("Error creating Momo payment URL: ", error);
+    }
   };
 
   useEffect(() => {
@@ -311,7 +343,7 @@ const CheckOut = () => {
     <>
       <div className="w-full bg-primary_green lg:h-[75px] lg:p-10 h-auto p-5 text-center">
         <h1 className="h-full w-full flex items-center justify-center text-2xl lg:text-4xl text-white font-bold">
-          CHECKOUT
+          THANH TOÁN
         </h1>
       </div>
       <form action="" onSubmit={formik.handleSubmit}>
@@ -319,12 +351,12 @@ const CheckOut = () => {
           <div className="md:grid md:grid-cols-12">
             <div className="md:col-span-8 md:mr-4">
               <div className="flex mt-8 gap-2">
-                <h1 className="text-black font-bold">Returning customers?</h1>
+                <h1 className="text-black font-bold">Bạn có tài khoản chưa?</h1>
                 <a
                   href=""
                   className="text-primary_green underline font-semibold"
                 >
-                  Click here to login
+                  Đi tới đăng nhập
                 </a>
               </div>
               <div className="flex mt-8 gap-2">
@@ -338,15 +370,13 @@ const CheckOut = () => {
               </div>
               <div className="mt-8">
                 <h1 className="text-[22px] font-semibold">
-                  BILLING & SHIPPING
+                  THANH TOÁN & VẬN CHUYỂN
                 </h1>
                 <div className="mt-4 flex flex-col gap-4">
                   <div className="md:flex md:gap-4">
                     <div className="w-full">
                       <div className="mb-1">
-                        <span className="text-[18px] font-medium">
-                          Fisrt name
-                        </span>
+                        <span className="text-[18px] font-medium">Họ đệm </span>
                         <span className="ml-1 text-red-600 text-[20px]">*</span>
                       </div>
                       <input
@@ -365,9 +395,7 @@ const CheckOut = () => {
                     </div>
                     <div className="w-full">
                       <div className="mb-1">
-                        <span className="text-[18px] font-medium">
-                          Last name
-                        </span>
+                        <span className="text-[18px] font-medium">Tên</span>
                         <span className="ml-1 text-red-600 text-[20px]">*</span>
                       </div>
                       <input
@@ -405,9 +433,9 @@ const CheckOut = () => {
                     <span className="ml-1 text-[20px] text-red-500">*</span>
                   </div>
                   <h2 className="mt-0 mb-4">South Africa</h2> */}
-                  <div className="flex flex-col">
+                  <div className="flex flex-col mt-3">
                     <div className="flex">
-                      <h2 className="font-semibold">Street address</h2>
+                      <h2 className="font-semibold">Địa chỉ</h2>
                       <span className="ml-1 text-[20px] text-red-500">*</span>
                     </div>
                     <input
@@ -461,7 +489,7 @@ const CheckOut = () => {
                   </div> */}
                   <div className="flex flex-col mt-3">
                     <div className="flex">
-                      <h2 className="font-semibold">Town / City</h2>
+                      <h2 className="font-semibold">Thành phố</h2>
                       <span className="ml-1 text-[20px] text-red-500">*</span>
                     </div>
                     <input
@@ -492,7 +520,7 @@ const CheckOut = () => {
                   </div> */}
                   <div className="flex flex-col mt-3">
                     <div className="flex">
-                      <h2 className="font-semibold">Phone</h2>
+                      <h2 className="font-semibold">Số điện thoại</h2>
                       <span className="ml-1 text-[20px] text-red-500">*</span>
                     </div>
                     <input
@@ -511,7 +539,7 @@ const CheckOut = () => {
                   </div>
                   <div className="flex flex-col mt-3">
                     <div className="flex">
-                      <h2 className="font-semibold">Email address</h2>
+                      <h2 className="font-semibold">Email</h2>
                       <span className="ml-1 text-[20px] text-red-500">*</span>
                     </div>
                     <input
@@ -542,8 +570,10 @@ const CheckOut = () => {
                       <span className="font-semibold">Create an account?</span>
                     </div> */}
 
-                    <div className="flex gap-8 mt-3">
-                      <h1 className="font-semibold">Payment methods</h1>
+                    <div className="lg:flex gap-8 mt-3">
+                      <h1 className="font-semibold mb-3">
+                        Phương thức thanh toán
+                      </h1>
                       <div className="flex flex-col ">
                         <div className="flex gap-1 ">
                           <input
@@ -590,6 +620,19 @@ const CheckOut = () => {
                             Thanh toán bằng vnpay
                           </label>
                         </div>
+                        <div className="flex gap-1" onClick={paymentMoMoClick}>
+                          <input
+                            type="radio"
+                            id="momo"
+                            name="payment_information"
+                            value="momo"
+                            onChange={handlePaymentMethodChange}
+                            checked={paymentMethod === "momo"}
+                          />
+                          <label htmlFor="momo" className="cursor-pointer">
+                            Thanh toán bằng momo
+                          </label>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -613,14 +656,14 @@ const CheckOut = () => {
             <div className="md:col-span-4 md:mt-8">
               <div className="mt-4 bg-[#f7f7f7] p-3">
                 <h1 className="text-center py-4 text-[22px] font-bold">
-                  YOUR ORDER
+                  ĐƠN HÀNG CỦA BẠN
                 </h1>
                 <div className="">
                   <table className="w-[100%] bg-white p-3">
                     <thead>
                       <tr className="flex justify-between p-3">
-                        <th>Product</th>
-                        <th>Subtotal</th>
+                        <th>Sản phẩm</th>
+                        <th>Tổng phụ</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -671,7 +714,7 @@ const CheckOut = () => {
                         <Link to="/shop">
                           <div className="p-3 text-center cursor-pointer">
                             <p className="py-1 px-4 border bg-primary_green text-white rounded-full">
-                              Return to shop
+                              QUAY VỀ CỬA HÀNG
                             </p>
                           </div>
                         </Link>
@@ -679,13 +722,13 @@ const CheckOut = () => {
                     </tbody>
                     <tfoot>
                       <tr className="flex justify-between p-3  border-t-2">
-                        <th>Subtotal</th>
+                        <th>Tổng phụ</th>
                         <td>
                           {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
                         </td>
                       </tr>
                       <tr className="flex justify-between p-3  border-t-2">
-                        <th>Shipping</th>
+                        <th>Vận chuyển</th>
                         <td className="flex flex-col ">
                           <div className="flex justify-end gap-1">
                             <span>Flat rate (May Vary): R150</span>
@@ -698,7 +741,7 @@ const CheckOut = () => {
                         </td>
                       </tr>
                       <tr className="flex justify-between p-3  border-t-2">
-                        <th>Total</th>
+                        <th>Tổng</th>
                         <td className="text-primary_green font-bold">
                           {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
                         </td>
@@ -738,7 +781,7 @@ const CheckOut = () => {
                           ? "bg-primary_green"
                           : " bg-primary_green opacity-50"
                       }`}
-                      disabled={!userLogin && items.length === 0}
+                      disabled={items.length === 0}
                       onClick={() => {
                         if (!userLogin) {
                           alert("Please login");
@@ -746,7 +789,7 @@ const CheckOut = () => {
                         }
                       }}
                     >
-                      PLACE ORDER
+                      ĐẶT HÀNG
                     </button>
                   )}
                 </div>

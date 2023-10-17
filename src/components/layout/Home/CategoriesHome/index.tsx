@@ -25,7 +25,7 @@ function CategoriesHome(props: IProps) {
             relative before:absolute before:rounded-lg before:content before:w-24 md:before:w-28
             before:h-1 before:-bottom-2 before:left-0 before:bg-gradient-to-tr from-primary_green to-green-700 mr-auto"
       >
-        Categories
+        Danh mục
       </p>
       <div className="w-full flex items-center justify-start lg:justify-center gap-8 py-6 overflow-x-scroll scrollbar-none lg:overflow-x-hidden">
         {categories &&

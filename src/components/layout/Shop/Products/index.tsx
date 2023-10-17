@@ -4,6 +4,7 @@ import Product from "../Product";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { IProduct } from "../../../../interfaces/IProducts";
+import { AiOutlineInfoCircle } from "react-icons/ai";
 
 interface Iprops {
   categoryName: string | undefined;
@@ -90,7 +91,7 @@ function Products({
                 className="text-sm lg:text-lg font-semibold"
                 style={{ flexShrink: 0 }}
               >
-                Shop
+                Cửa hàng
               </span>
             </Link>
           </motion.div>
@@ -132,7 +133,7 @@ function Products({
           {name ? (
             <motion.div whileTap={{ scale: 0.75 }}>
               <span className="text-sm lg:text-lg font-semibold">
-                Search results for: "{name}"
+                Kết quả tìm kiếm: "{name}"
               </span>
             </motion.div>
           ) : (
@@ -140,7 +141,7 @@ function Products({
           )}
           {name ? <span className="text-sm lg:text-lg mx-2">/</span> : ""}
           <span className="text-sm lg:text-lg font-semibold">
-            Page <span>{currentPage}</span>
+            Trang <span>{currentPage}</span>
           </span>
         </div>
 
@@ -184,7 +185,7 @@ function Products({
               );
             }}
           >
-            All
+            Tất cả
           </span>
         </div>
       </div>
@@ -201,20 +202,32 @@ function Products({
         ""
       )}
 
-      <div className="w-full grid gap-2 grid-cols-2 lg:grid-cols-3 text-center mt-5">
+      <div
+        className={`w-full ${
+          productItems.length > 0 ? "grid gap-2 grid-cols-1 lg:grid-cols-3" : ""
+        }  text-center mt-5`}
+      >
         {productItems.length > 0 ? (
           productItems.map((item) => {
             return <Product product={item} key={item?._id} />;
           })
         ) : (
-          <p>No items to display</p>
+          <div>
+            <div className="text-gray-200 flex items-center justify-center">
+              <AiOutlineInfoCircle lg:size={200} size={130} />
+            </div>
+            <p className="text-xl text-neutral-400">Không có sản phẩm nào</p>
+          </div>
         )}
       </div>
 
       {/* các nút điều hướng trang */}
       <div className="flex justify-center mt-5">
         <button
-          onClick={handlePreviousPage}
+          onClick={() => {
+            handlePreviousPage();
+            window.scrollTo(0, 0);
+          }}
           hidden={currentPage === 1}
           className="text-2xl"
         >
@@ -223,14 +236,20 @@ function Products({
         {pageNumbers.map((number) => (
           <button
             key={number}
-            onClick={() => handlePageClick(number)}
+            onClick={() => {
+              handlePageClick(number);
+              window.scrollTo(0, 0);
+            }}
             className={currentPage === number ? "bg-green-700 text-white" : ""}
           >
             <p className="mx-2 text-md p-[5px] font-semibold">{number}</p>
           </button>
         ))}
         <button
-          onClick={handleNextPage}
+          onClick={() => {
+            handleNextPage();
+            window.scrollTo(0, 0);
+          }}
           hidden={currentPage === totalPages || products.length === 0}
           className="text-2xl"
         >

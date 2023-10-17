@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { MdOutlineClose, MdProductionQuantityLimits } from "react-icons/md";
 import { BsFillCartXFill } from "react-icons/bs";
 import { AiOutlineClose } from "react-icons/ai";
-import { IRemoveCartItem, useCarts } from "../../hooks/useCart";
+import { useCarts } from "../../hooks/useCart";
 import numeral from "numeral";
 import "./index.css";
 import { IProduct } from "../../interfaces/IProducts";
+import { IRemoveCartItem } from "../../interfaces/IRemoveCartItem";
 interface Props {
   openCart: boolean;
   setOpenCart: React.Dispatch<React.SetStateAction<boolean>>;
@@ -44,7 +45,7 @@ const Cart = (props: Props) => {
             src="https://easyscape.co.za/wp-content/uploads/2021/08/EasyScape.svg"
             alt="image_brand"
           />
-          <h4 className="font-extrabold">Shopping Cart</h4>
+          <h4 className="font-extrabold text-xl">GIỎ HÀNG</h4>
           <div
             className="flex items-center font-medium cursor-pointer gap-1 hover:opacity-[0.7] text-[20px]"
             onClick={handleCloseCart}
@@ -111,13 +112,15 @@ const Cart = (props: Props) => {
                   <div className="text-gray-200 flex items-center justify-center">
                     <MdProductionQuantityLimits size={100} />
                   </div>
-                  <p className="my-4 font-bold">No product in the basket</p>
+                  <p className="my-4 font-bold">
+                    Không có sản phẩm nào trong giỏ hàng
+                  </p>
                   <Link to="/shop">
                     <button
                       className="bg-primary_green rounded-full px-5 py-2 text-white"
                       onClick={() => handleCloseCart()}
                     >
-                      RETURN TO SHOP
+                      QUAY VỀ CỬA HÀNG
                     </button>
                   </Link>
                 </div>
@@ -125,7 +128,7 @@ const Cart = (props: Props) => {
             </div>
             <div className="h-[35vh] py-3 px-6">
               <div className="flex justify-between">
-                <span className="text-[20px] font-bold">Subtotal:</span>
+                <span className="text-[20px] font-bold">Tổng:</span>
                 <span className="text-[20px]">
                   {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
                 </span>
@@ -136,14 +139,26 @@ const Cart = (props: Props) => {
                   to={"/component/checkcart/shoppingcart"}
                   onClick={() => handleCloseCart()}
                 >
-                  <button>VIEW BASKET</button>
+                  <button>XEM GIỎ HÀNG</button>
                 </Link>
                 <Link
-                  to={"/component/checkcart/checkout"}
+                  to={
+                    items.length === 0
+                      ? "/shop"
+                      : "/component/checkcart/checkout"
+                  }
                   className="bg-primary_green py-2 rounded-[20px] text-white hover:opacity-[0.9] text-center"
                   onClick={() => handleCloseCart()}
                 >
-                  <button>CHECKOUT</button>
+                  <button
+                    onClick={() => {
+                      if (items.length === 0) {
+                        alert("Vui lòng chọn sản phẩm và thêm vào giỏ hàng");
+                      }
+                    }}
+                  >
+                    THANH TOÁN
+                  </button>
                 </Link>
               </div>
             </div>

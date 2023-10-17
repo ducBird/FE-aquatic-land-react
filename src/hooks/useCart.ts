@@ -1,13 +1,11 @@
 import create from "zustand";
 import { persist, devtools } from "zustand/middleware";
 import { IProduct } from "../interfaces/IProducts";
+import { IRemoveCartItem } from "../interfaces/IRemoveCartItem";
 
 export interface CartItem {
   product: IProduct;
   quantity: number;
-}
-export interface IRemoveCartItem {
-  product: IProduct;
 }
 const persistOptions = {
   name: "cart-storage",

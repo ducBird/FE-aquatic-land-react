@@ -20,12 +20,12 @@ function HistoryOrderUser() {
   console.log(historyOrderUser);
   return (
     <div className="w-full">
-      <div className="w-full bg-primary_green lg:h-[75px] lg:p-10 h-auto p-5 text-center lg:mb-0 mb-3">
+      <div className="bg-primary_green lg:h-[75px] lg:p-10 h-auto p-5 text-center lg:mb-0 mb-3">
         <h3 className="h-full w-full flex items-center justify-center text-3xl lg:text-4xl text-white font-bold">
-          History Order User
+          TÀI KHOẢN
         </h3>
       </div>
-      <div className="w-full lg:m-10 flex items-center justify-center">
+      <div className="lg:m-10 flex items-center justify-center">
         {user && (
           <div className="lg:w-[700px] w-full lg:border-gray lg:border-2 text-center p-5 lg:flex lg:flex-col lg:justify-center lg:items-center">
             <h4 className="text-2xl font-bold text-primary_green mb-5">

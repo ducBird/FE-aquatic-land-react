@@ -20,25 +20,25 @@ const FooterTool = () => {
                 <div className="m-auto text-[20px] font-medium">
                   <AiOutlineShop />
                 </div>
-                <span>Shop</span>
+                <span>Cửa hàng</span>
               </div>
               <div className="flex flex-col">
                 <div className="m-auto text-[20px] font-medium">
                   <AiOutlineHeart />
                 </div>
-                <span>Wishlist</span>
+                <span>Yêu thích</span>
               </div>
               <div className="flex flex-col">
                 <div className="m-auto text-[20px] font-medium">
                   <BsHandbag />
                 </div>
-                <span>Cart</span>
+                <span>Giỏ hàng</span>
               </div>
               <div onClick={handleLogin} className="flex flex-col">
                 <div className="m-auto text-[20px] font-medium">
                   <RxPerson />
                 </div>
-                <span>My account</span>
+                <span>Tài khoản</span>
               </div>
             </div>
           </div>

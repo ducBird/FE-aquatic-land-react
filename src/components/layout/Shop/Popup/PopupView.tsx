@@ -3,20 +3,21 @@ import React, { useEffect, useState } from "react";
 import { MdOutlineClose } from "react-icons/md";
 import ReactModal from "react-modal";
 import { IProduct } from "../../../../interfaces/IProducts";
+import ProductVariantOption from "../ProductVariantOption";
 // Thiết lập các style cho modal
 const customStyles = {
   overlay: {
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   content: {
-    top: "55%",
+    top: "52%",
     left: "50%",
     right: "auto",
     bottom: "auto",
     transform: "translate(-50%, -50%)",
     maxWidth: "850px",
     width: "100%",
-    height: "450px",
+    height: "470px",
     padding: "20px",
   },
 };
@@ -57,7 +58,7 @@ const PopupView: React.FC<IModalProps> = ({
         style={customStyles}
         contentLabel="Example Modal"
       >
-        <div className="flex w-full h-full">
+        <div className="lg:flex w-full h-full mt-6 lg:mt-0">
           <div className="flex-1 items-center justify-center">
             <img
               src={product?.product_image}
@@ -65,13 +66,14 @@ const PopupView: React.FC<IModalProps> = ({
               className="w-full h-full object-contain p-2"
             />
           </div>
-          <div className="flex-1 font-semibold cursor-pointer text-2xl">
-            <p className="p-2">{product?.name}</p>
+          <div className="flex-1 font-semibold cursor-pointer text-sm mt-5">
+            {/* <p className="p-2">{product?.name}</p> */}
+            <ProductVariantOption product={product} />
           </div>
         </div>
         <button
           onClick={closePopup}
-          className="absolute text-2xl top-2 right-2 text-red-500"
+          className="absolute text-3xl top-4 right-4 text-red-500"
         >
           <MdOutlineClose />
         </button>

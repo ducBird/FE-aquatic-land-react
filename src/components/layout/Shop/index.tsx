@@ -148,11 +148,11 @@ function Shop() {
           </h3>
         ) : name ? (
           <h3 className="h-full w-full flex items-center justify-center text-3xl lg:text-4xl text-white font-bold">
-            Search results for: {name}
+            KẾT QUẢ TÌM KIẾM: {name}
           </h3>
         ) : (
           <h3 className="h-full w-full flex items-center justify-center text-3xl lg:text-4xl text-white font-bold">
-            Shop
+            CỬA HÀNG
           </h3>
         )}
       </div>
@@ -169,17 +169,17 @@ function Shop() {
               <FiMenu size={19} />
             </button>
             <p className="ml-2" onClick={handleSiteBar}>
-              Show SiteBar
+              Mở SiteBar
             </p>
           </div>
         )}
         <div
           className={`${
             isMobile
-              ? "absolute left-0 -top-5 z-20 bg-white h-screen w-full"
+              ? "absolute left-0 -top-5 z-20 bg-white h-screen w-full overflow-y-auto"
               : "lg:w-[30%] lg:block "
           } p-2 ${isMobile && !openSitebar ? "hidden" : ""}`}
-          style={{ overflowY: "auto", maxHeight: "calc(100vh - 100px)" }}
+          style={{ maxHeight: "calc(100vh - 110px)" }}
         >
           <button
             className="absolute top-4 right-3 text-red-500 lg:hidden"

@@ -4,32 +4,32 @@ import { RxPerson } from "react-icons/rx";
 
 export const PageMenuData = [
   {
-    value: "home",
+    value: "Trang chủ",
     linkTo: "/",
     icon: null,
   },
   {
-    value: "shop",
+    value: "Cửa hàng",
     linkTo: "/shop",
     icon: null,
   },
   {
-    value: "services",
+    value: "Dịch vụ",
     linkTo: "/services",
     icon: null,
   },
   {
-    value: "blog",
+    value: "Bài viết",
     linkTo: "/blog",
     icon: null,
   },
   {
-    value: "contact us",
+    value: "Liên hệ",
     linkTo: "/contact-us",
     icon: null,
   },
   {
-    value: "wishlist",
+    value: "Yêu thích",
     linkTo: "/wishlist",
     icon: AiOutlineHeart,
   },
@@ -39,7 +39,7 @@ export const PageMenuData = [
     icon: IoIosGitCompare,
   },
   {
-    value: "login / register",
+    value: "Đăng nhập / Đăng ký",
     linkTo: "/login",
     icon: RxPerson,
   },

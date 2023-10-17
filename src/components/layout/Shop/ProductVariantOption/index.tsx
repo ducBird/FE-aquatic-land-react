@@ -23,8 +23,29 @@ function ProductVariantOption({ product }: Iprops) {
   }>({});
 
   // console.log("setSelectedOptions", selectedOptions);
-  const [productPrice, setProductPrice] = useState<number | null>(null);
+  // const [productPrice, setProductPrice] = useState<number | null>(null);
+  // Lấy ra danh sách các variant từ sản phẩm
+  const variants = product?.variants || [];
 
+  // Khởi tạo giá mới bằng giá ban đầu
+  let newPrice = numeral(product?.price).value();
+  const discount = numeral(product?.discount).value();
+  // Lặp qua danh sách các variant
+  for (const variant of variants) {
+    // Kiểm tra xem variant có options không
+    if (variant.options && variant.options.length > 0) {
+      // Lấy giá của option đầu tiên trong variant
+      const optionPrice = numeral(variant.options[0].add_valuation).value();
+
+      // Cộng giá của option đầu tiên vào giá mới
+      newPrice += optionPrice;
+    }
+  }
+  const totalDiscount = (newPrice * (100 - discount)) / 100;
+  const [productPrice, setProductPrice] = useState<number | null>(newPrice);
+  const [productDiscount, setProductDiscount] = useState<number | null>(
+    totalDiscount
+  );
   // các nút tăng hay giảm số lượng khi đặt hàng
   // nút trừ
   const handleChange = (event) => {
@@ -183,11 +204,21 @@ function ProductVariantOption({ product }: Iprops) {
     }
   };
 
-  // useEffect để cập nhật giá sản phẩm khi có thay đổi trong selectedOptions
+  // Cập nhật giá sản phẩm khi có thay đổi trong selectedOptions
   useEffect(() => {
-    const newProductPrice = calculateProductPrice();
-    setProductPrice(newProductPrice.totalPrice);
+    // Kiểm tra xem đã có selectedOptions hay chưa
+    if (Object.keys(selectedOptions).length > 0) {
+      const newProductPrice = calculateProductPrice();
+      const newProductDiscount = calculateProductPrice();
+      setProductPrice(newProductPrice.totalPrice);
+      setProductDiscount(newProductDiscount.discountOptions);
+    } else {
+      // Nếu không có selectedOptions, sử dụng giá ban đầu và discount theo giá ban đầu
+      setProductPrice(newPrice);
+      setProductDiscount(totalDiscount);
+    }
   }, [selectedOptions]);
+
   return (
     <>
       {/* name */}
@@ -208,13 +239,19 @@ function ProductVariantOption({ product }: Iprops) {
             }
           >
             {/* {numeral(product?.price).format("0,0").replace(/,/g, ".")} */}
-            {numeral(calculateProductPrice().totalPrice)
+            {/* {numeral(calculateProductPrice().totalPrice)
+              .format("0,0")
+              .replace(/,/g, ".")} */}
+            {numeral(productPrice || newPrice)
               .format("0,0")
               .replace(/,/g, ".")}
           </span>
           <span className={product?.discount ? "pl-2 font-bold" : "hidden"}>
             {product &&
-              numeral(calculateProductPrice().discountOptions)
+              // numeral(calculateProductPrice().discountOptions)
+              //   .format("0,0")
+              //   .replace(/,/g, ".")
+              numeral(productDiscount || totalDiscount)
                 .format("0,0")
                 .replace(/,/g, ".")}
           </span>
@@ -260,7 +297,7 @@ function ProductVariantOption({ product }: Iprops) {
       </div>
 
       {/* quantity */}
-      <div className="cart flex mt-4">
+      <div className="cart flex my-4 pb-20 lg:pb-0">
         <div className="quantity flex border border-gray-200 rounded-md w-[120px] h-[42px]">
           <div className="flex flex-none p-1 border-r w-[25px] items-center justify-center">
             <button
@@ -285,7 +322,7 @@ function ProductVariantOption({ product }: Iprops) {
             className="p-3 text-white text-sm hover:font-bold"
             onClick={() => handleAddToBasketClick()}
           >
-            ADD TO BASKET
+            Thêm giỏ hàng
           </button>
         </div>
       </div>

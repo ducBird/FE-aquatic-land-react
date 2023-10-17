@@ -59,20 +59,24 @@ function ProductDetail() {
 
   // get data subcategories
   useEffect(() => {
-    axiosClient.get("/sub-categories").then((response) => {
-      setSubCategories(response.data);
-    });
-  }, []);
+    if (subCategoryId) {
+      axiosClient.get("/sub-categories").then((response) => {
+        setSubCategories(response.data);
+      });
+    }
+  }, [subCategoryId]);
 
   // tìm ra các sản phẩm liên quan với product được chọn làm product detail
   useEffect(() => {
     if (product) {
       const fetchRelatedProducts = async () => {
         try {
-          const response = await axiosClient.get(
-            "/products/" + categoryId + "/sub/" + subCategoryId
-          );
-          setRelatedProducts(response.data);
+          if (subCategoryId) {
+            const response = await axiosClient.get(
+              "/products/" + categoryId + "/sub/" + subCategoryId
+            );
+            setRelatedProducts(response.data);
+          }
         } catch (error) {
           console.error("Error fetching related products:", error);
         }
@@ -87,16 +91,20 @@ function ProductDetail() {
       <div className="product-detail">
         <div className="flex">
           <Link to="/shop">
-            <p>Shop</p>
+            <p>Cửa hàng</p>
           </Link>
           <p className="mx-2">/</p>
           <Link to={`/product-category/${categoryId}`}>
             <p>{categoryName}</p>
           </Link>
-          <p className="mx-2">/</p>
-          <Link to={`/product-category/${categoryId}/sub/${subCategoryId}`}>
-            <p className="font-semibold">{subCategoryName}</p>
-          </Link>
+          {subCategoryId && (
+            <>
+              <p className="mx-2">/</p>
+              <Link to={`/product-category/${categoryId}/sub/${subCategoryId}`}>
+                <p className="font-semibold">{subCategoryName}</p>
+              </Link>
+            </>
+          )}
         </div>
         <div className="lg:flex mt-3 lg:mt-10 ">
           <div className="lg:flex-1 h-[400px] lg:h-[500px] w-full flex items-center justify-center">
@@ -116,17 +124,23 @@ function ProductDetail() {
               <Link to={`/product-category/${categoryId}`}>
                 <p className="ml-2 hover:font-bold">{categoryName}</p>
               </Link>
-              <p>,</p>
-              <Link to={`/product-category/${categoryId}/sub/${subCategoryId}`}>
-                <p className="ml-1 hover:font-bold">{subCategoryName}</p>
-              </Link>
+              {subCategoryId && (
+                <>
+                  <p>,</p>
+                  <Link
+                    to={`/product-category/${categoryId}/sub/${subCategoryId}`}
+                  >
+                    <p className="ml-1 hover:font-bold">{subCategoryName}</p>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
       <div className="border border-b-0 border-gray-200 my-12"></div>
       <div className="related-products my-7">
-        <h4 className="text-xl font-semibold my-4">Related Products</h4>
+        <h4 className="text-xl font-semibold my-4">Sản phẩm liên quan</h4>
         <div className="grid gap-x-2 gap-y-2 grid-cols-2 lg:grid-cols-5 text-center mt-5">
           {filteredRelatedProducts &&
             filteredRelatedProducts.map((item) => {

@@ -12,6 +12,8 @@ import LoginCart from "../../Auth/Login/LoginCard";
 import AquaticLogo from "../../../assets/ImageAquaticLand.png";
 import { useCarts } from "../../../hooks/useCart";
 import { useNavigate } from "react-router-dom";
+import { useProductWishlist } from "../../../hooks/useProductWishlist";
+import SearchPopup from "./Search/index";
 
 export default function Header() {
   const [openLogin, setOpenLogin] = React.useState(false);
@@ -22,8 +24,10 @@ export default function Header() {
     height: 0,
   });
   const [isMobile, setIsMobile] = useState(false);
+  const [showPopupSearch, setShowPopupSearch] = useState(false);
   // zustand
   const { items } = useCarts((state) => state) as any;
+  const { wishlist_items } = useProductWishlist((state) => state) as any;
   const quantityCart = items.reduce((total, item) => {
     // cast biến item sang kiểu dữ liệu number
     const cartItem = item as { quantity: number };
@@ -40,6 +44,9 @@ export default function Header() {
   };
   const handleLogin = () => {
     setOpenLogin(true);
+  };
+  const closePopup = () => {
+    setShowPopupSearch(false);
   };
   const navigate = useNavigate();
   // const userStorage = localStorage.getItem("user-storage") ?? "";
@@ -117,7 +124,10 @@ export default function Header() {
               </div>
             ) : (
               <div className={`flex justify-end`}>
-                <a className="flex justify-center items-center h-[40px] leading-none px-[10px] text-gray-800 cursor-pointer">
+                <a
+                  onClick={() => setShowPopupSearch(true)}
+                  className="flex justify-center items-center h-[40px] leading-none px-[10px] text-gray-800 cursor-pointer"
+                >
                   <span className="relative flex item-center justify-center">
                     <BiSearchAlt size={24} />
                   </span>
@@ -137,11 +147,17 @@ export default function Header() {
                     <RxPerson size={24} />
                   </span>
                 </a>
-                <a className="flex justify-center items-center h-[40px] leading-none px-[10px] text-gray-800 cursor-pointer">
+                <a
+                  onClick={() => {
+                    navigate("/wishlist");
+                    window.scrollTo(0, 0);
+                  }}
+                  className="flex justify-center items-center h-[40px] leading-none px-[10px] text-gray-800 cursor-pointer"
+                >
                   <span className="relative flex item-center justify-center">
                     <AiOutlineHeart size={24} />
                     <span className="absolute top-[-5px] end-[-9px] bg-primary_green text-white text-[9px] w-[15px] h-[15px] leading-[15px] text-center font-normal rounded-full z-[1]">
-                      0
+                      {wishlist_items.length}
                     </span>
                   </span>
                 </a>
@@ -178,6 +194,7 @@ export default function Header() {
       />
       <Cart openCart={openCart} setOpenCart={setOpenCart} />
       <LoginCart openLogin={openLogin} setOpenLogin={setOpenLogin} />
+      <SearchPopup showPopup={showPopupSearch} closePopup={closePopup} />
     </main>
   );
 }

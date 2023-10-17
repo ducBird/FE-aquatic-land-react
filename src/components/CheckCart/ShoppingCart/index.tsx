@@ -7,10 +7,12 @@ import { useState } from "react";
 import numeral from "numeral";
 import { CartItems } from "../../../interfaces/ICartItems";
 import { IProduct } from "../../../interfaces/IProducts";
+import LoginCart from "../../Auth/Login/LoginCard";
+import { IRemoveCartItem } from "../../../interfaces/IRemoveCartItem";
 const ShoppingCart = () => {
   // zustand
   const { items, remove, updateQuantity } = useCarts((state) => state) as any;
-
+  const [openLogin, setOpenLogin] = useState(false);
   // Tạo state quantity cho từng sản phẩm
   const [quantities, setQuantities] = useState<number[]>(
     items.map((item) => item.quantity)
@@ -21,7 +23,12 @@ const ShoppingCart = () => {
   }, 0);
   const [quantityChange, setQuantityChange] = useState<boolean>(false);
   const [changedProductIds, setChangedProductIds] = useState<string[]>([]);
-
+  const userString = localStorage.getItem("user-storage");
+  const user = userString ? JSON.parse(userString) : null;
+  const userLogin = user && Object.keys(user.state.users).length !== 0;
+  const handleLogin = () => {
+    setOpenLogin(true);
+  };
   // Hàm giảm quantity
   const minusClick = (index: number) => {
     const updatedQuantities = [...quantities];
@@ -71,7 +78,7 @@ const ShoppingCart = () => {
     <>
       <div className="w-full bg-primary_green lg:h-[75px] lg:p-10 h-auto p-5 text-center">
         <h1 className="h-full w-full flex items-center justify-center text-2xl lg:text-4xl text-white font-bold">
-          VIEW BASKET
+          CHI TIẾT GIỎ HÀNG
         </h1>
       </div>
       {items.length > 0 ? (
@@ -82,6 +89,9 @@ const ShoppingCart = () => {
               <ul className="block md:hidden">
                 {items &&
                   items.map((item, index) => {
+                    const removeCart: IRemoveCartItem = {
+                      product: item.product as IProduct,
+                    };
                     const product = item.product;
                     const total = numeral(item.product?.total)
                       .format("0,0")
@@ -114,13 +124,13 @@ const ShoppingCart = () => {
                             </div>
                             <div className="flex justify-between border-dashed border-b-[1px]">
                               <span className="text-[12px] font-semibold">
-                                PRICE
+                                Giá
                               </span>
                               <span>{total}</span>
                             </div>
                             <div className="flex justify-between border-dashed border-b-[1px] items-center py-2">
                               <span className="text-[12px] font-semibold">
-                                QUANTITY
+                                Số lượng
                               </span>
                               <div className=" border h-[30px] w-[120px] flex justify-between items-center text-center rounded-[10px] overflow-hidden">
                                 <button
@@ -141,11 +151,9 @@ const ShoppingCart = () => {
                                 </button>
                               </div>
                             </div>
-                            <div className="flex justify-between ">
-                              <span className="text-[12px] font-semibold">
-                                SUBTOTAL
-                              </span>
-                              <span className="text-primary_green font-semibold">
+                            <div className="flex justify-between text-primary_green font-semibold">
+                              <span className="">Tổng phụ</span>
+                              <span className="">
                                 {numeral(item.quantity * item.product?.total)
                                   .format("0,0")
                                   .replace(/,/g, ".")}
@@ -154,7 +162,7 @@ const ShoppingCart = () => {
                           </div>
                           <button
                             className="cursor-pointer text-[20px] ml-8 h-2"
-                            onClick={() => remove(item.product._id)}
+                            onClick={() => remove(removeCart)}
                           >
                             <AiOutlineClose />
                           </button>
@@ -171,15 +179,18 @@ const ShoppingCart = () => {
                     <tr className="md:text-[20px]">
                       <th className="pb-3"></th>
                       <th className="pb-3"></th>
-                      <th className="pb-3">Product</th>
-                      <th className="pb-3">Price</th>
-                      <th className="pb-3">Quantity</th>
-                      <th className="pb-3">Subtotal</th>
+                      <th className="pb-3">Sản phẩm</th>
+                      <th className="pb-3">Giá</th>
+                      <th className="pb-3">Số lượng</th>
+                      <th className="pb-3">Tổng phụ</th>
                     </tr>
                   </thead>
                   <tbody>
                     {items &&
                       items.map((item, index) => {
+                        const removeCart: IRemoveCartItem = {
+                          product: item.product as IProduct,
+                        };
                         const total = numeral(item.product?.total)
                           .format("0,0")
                           .replace(/,/g, ".");
@@ -188,7 +199,7 @@ const ShoppingCart = () => {
                             <td className="py-[15px] ">
                               <button
                                 className="cursor-pointer"
-                                onClick={() => remove(item.product._id)}
+                                onClick={() => remove(removeCart)}
                               >
                                 <AiOutlineClose />
                               </button>
@@ -273,7 +284,7 @@ const ShoppingCart = () => {
                       } py-2 rounded-[20px] text-white`}
                       onClick={quantityUpdate}
                     >
-                      UPDATE BASKET
+                      CẬP NHẬT GIỎ HÀNG
                     </button>
                   </div>
                 </div>
@@ -294,16 +305,16 @@ const ShoppingCart = () => {
 
             <div className="flex flex-col gap-3 md:col-span-4 mt-5">
               <div className="border-2 p-5 flex flex-col leading-[28px]">
-                <h1 className=" font-semibold text-[25px]">BASKET TOTALS</h1>
+                <h1 className=" font-semibold text-[25px]">TỔNG GIỎ HÀNG</h1>
                 <div className="flex justify-between mt-3">
-                  <span className="text-[16px] font-medium">Subtotal</span>
+                  <span className="text-[16px] font-medium">Tổng phụ</span>
                   <span>
                     {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
                   </span>
                 </div>
                 <hr className="my-3" />
                 <div className="flex justify-between ">
-                  <h1 className="text-[16px] font-medium">Shipping</h1>
+                  <h1 className="text-[16px] font-medium">Vận chuyển</h1>
                   <div className="flex">
                     <h1>Flat rate (MAY Vary)</h1>
                     <span className="text-primary_green">:R150</span>
@@ -323,16 +334,31 @@ const ShoppingCart = () => {
                 <hr className="my-3" />
                 <div className="">
                   <div className="flex justify-between">
-                    <span className="text-[16px] font-medium">Total</span>
+                    <span className="text-[16px] font-medium">Tổng</span>
                     <span className="text-[18px] font-medium text-primary_green">
                       {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
                     </span>
                   </div>
                   <h2 className="text-right">(includes R123 VAT)</h2>
-                  <Link to={"/component/checkcart/checkout"}>
+                  <Link
+                    to={
+                      !userLogin
+                        ? "/component/checkcart/shoppingcart"
+                        : "/component/checkcart/checkout"
+                    }
+                  >
                     <div className="flex flex-col mt-4 gap-4">
-                      <button className="bg-primary_green py-2 rounded-[20px] text-white hover:opacity-[0.9]">
-                        PROCESS TO CHECKOUT
+                      <button
+                        className="bg-primary_green py-2 rounded-[20px] text-white hover:opacity-[0.9]"
+                        // disabled={!userLogin}
+                        onClick={() => {
+                          if (!userLogin) {
+                            alert("Vui lòng đăng nhập !");
+                            handleLogin();
+                          }
+                        }}
+                      >
+                        ĐI TỚI THANH TOÁN
                       </button>
                     </div>
                   </Link>
@@ -346,19 +372,20 @@ const ShoppingCart = () => {
           <div className="text-gray-200 flex items-center justify-center">
             <MdProductionQuantityLimits lg:size={200} size={130} />
           </div>
-          <p className="my-4 font-bold lg:text-5xl text-4xl">
-            Your basket is currently empty
+          <p className="my-4 font-bold lg:text-5xl text-2xl">
+            KHÔNG CÓ SẢN PHẨM NÀO TRONG GIỎ HÀNG CỦA BẠN
           </p>
           <p>
-            Before proceed to checkout you must add some products to your
-            shopping cart.
+            Trước khi tiến hành thanh toán, bạn phải thêm một số sản phẩm vào
+            giỏ hàng.
           </p>
           <p className="mb-5">
-            You will find a lot of interesting products on our "Shop" page.
+            Bạn sẽ tìm thấy rất nhiều sản phẩm thú vị trên trang "Cửa hàng" của
+            chúng tôi.
           </p>
           <Link to="/shop">
             <button className="bg-primary_green rounded-full">
-              <p className="px-5 py-2 text-white">RETURN TO SHOP</p>
+              <p className="px-5 py-2 text-white">QUAY VỀ CỬA HÀNG</p>
             </button>
           </Link>
         </div>
@@ -399,6 +426,7 @@ const ShoppingCart = () => {
           </div>
         </div>
       </div> */}
+      <LoginCart openLogin={openLogin} setOpenLogin={setOpenLogin} />
     </>
   );
 };

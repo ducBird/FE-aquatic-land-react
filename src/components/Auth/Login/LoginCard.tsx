@@ -66,15 +66,15 @@ const LoginCart = (props: Props) => {
         } left-full`}
       >
         <div className="flex items-center justify-between px-3 py-6 border border-b">
-          <h2 className="text-[20px] font-semibold">Sign in</h2>
+          <h2 className="text-[20px] font-semibold">Đăng nhập</h2>
           <div
             onClick={handleLoginClose}
-            className="flex items-center cursor-pointer hover:opacity-[0.7]"
+            className="flex items-center cursor-pointer hover:opacity-[0.7] text-red-500"
           >
             <span className="text-[20px] font-[100]">
               <MdOutlineClose />
             </span>
-            <h2 className="text-[18px]">Close</h2>
+            <h2 className="text-[18px]">Đóng</h2>
           </div>
         </div>
 
@@ -89,7 +89,7 @@ const LoginCart = (props: Props) => {
             onFinishFailed={onLoginFinishFailed}
           >
             <div className="flex">
-              <h2 className="mb-2 text-[15px] font-medium">First Name</h2>
+              <h2 className="mb-2 text-[15px] font-medium">Email</h2>
             </div>
             <Form.Item
               name="email"
@@ -102,7 +102,7 @@ const LoginCart = (props: Props) => {
               <Input className="outline-none border border-gray-400 h-[40px]" />
             </Form.Item>
             <div className="flex">
-              <h2 className="mb-2 text-[15px] font-medium">Password</h2>
+              <h2 className="mb-2 text-[15px] font-medium">Mật khẩu</h2>
             </div>
             <Form.Item
               name="password"
@@ -123,7 +123,7 @@ const LoginCart = (props: Props) => {
                 className="border w-[100%] rounded-[20px] py-2 bg-primary_green text-[20px] text-white font-semibold"
                 type="submit"
               >
-                Login
+                Đăng nhập
               </button>
             </Form.Item>
             <Form.Item>
@@ -138,11 +138,11 @@ const LoginCart = (props: Props) => {
                       id="remember-checkbox"
                       className="mr-[4px]"
                     />
-                    <span>Remember me</span>
+                    <span>Nhớ mật khẩu</span>
                   </label>
                 </div>
                 <h2 className="text-[15px] text-primary_green cursor-pointer hover:opacity-[0.7]">
-                  Lost your password?
+                  Quên mật khẩu
                 </h2>
               </div>
             </Form.Item>
@@ -153,10 +153,10 @@ const LoginCart = (props: Props) => {
             <AiOutlineUser size={"80px"} className="m-auto" />
           </div>
           <div className="">
-            <h2 className="font-bold mb-4">No account yet?</h2>
+            <h2 className="font-bold mb-4">Chưa có tài khoản</h2>
             <Link to={"/component/auth/register"} onClick={handleLoginClose}>
               <span className="border-b-2 border-primary_green font-semibold text-[14px] cursor-pointer hover:opacity-[0.7]">
-                CREATE AN ACCOUNT
+                Đăng ký tài khoản
               </span>
             </Link>
           </div>
