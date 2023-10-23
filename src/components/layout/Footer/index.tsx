@@ -2,6 +2,7 @@ import React from "react";
 import { BsFacebook } from "react-icons/bs";
 import { BsCamera } from "react-icons/bs";
 import { HiOutlinePhone } from "react-icons/hi";
+import AquaticLogo from "../../../assets/ImageAquaticLand.png";
 
 const Footer = () => {
   return (
@@ -127,11 +128,7 @@ const Footer = () => {
             </div>
             <div className="md:flex md:flex-col md:col-span-3">
               <div className="w-[100%] h-[80] mt-[35px] md:mt-0">
-                <img
-                  src="https://easyscape.co.za/wp-content/uploads/2021/08/EasyScape.svg"
-                  height="100%"
-                  alt=""
-                />
+                <img src={AquaticLogo} height="100%" alt="" />
               </div>
               <div className="mt-[20px] text-text_gray">
                 <p className="text-center">
