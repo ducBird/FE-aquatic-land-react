@@ -116,12 +116,12 @@ function Product(props: IProps) {
                   : "list-none  font-bold"
               }
             >
-              {numeral(newPrice).format("0,0").replace(/,/g, ".")}
+              {numeral(newPrice).format("0,0").replace(/,/g, ".")} vnđ
             </span>
             <span
               className={productItem?.discount ? "pl-2 font-bold" : "hidden"}
             >
-              {numeral(totalDiscount).format("0,0").replace(/,/g, ".")}
+              {numeral(totalDiscount).format("0,0").replace(/,/g, ".")} vnđ
             </span>
           </div>
 

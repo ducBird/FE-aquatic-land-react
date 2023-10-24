@@ -30,9 +30,21 @@ const LoginCart = (props: Props) => {
         );
         window.localStorage.setItem("access_token", response.data.access_token);
         message.success(response.data.msg);
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1000);
+        // Lấy đường dẫn hiện tại
+        const currentPath = window.location.pathname;
+
+        // Kiểm tra đường dẫn hiện tại
+        if (currentPath === "/component/checkcart/checkout") {
+          // Nếu đang ở "/component/checkcart/checkout", chuyển hướng trở lại đó
+          setTimeout(() => {
+            window.location.href = "/component/checkcart/checkout";
+          }, 1000);
+        } else {
+          // Nếu không ở "/component/checkcart/checkout", chuyển hướng về trang chính (home)
+          setTimeout(() => {
+            window.location.href = "/";
+          }, 1000);
+        }
       })
       .catch((err) => {
         message.error(err.response.data.msg);

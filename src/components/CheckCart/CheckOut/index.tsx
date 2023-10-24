@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { AiOutlineClose } from "react-icons/ai";
 import { axiosClient } from "../../../libraries/axiosClient";
 import { useCarts } from "../../../hooks/useCart";
+import { useUser } from "../../../hooks/useUser";
+import CheckOutCard from "./CheckOutCard";
+import { IAccumulated } from "../../../interfaces/Accumulated";
 import numeral from "numeral";
-import { PayPalButton } from "react-paypal-button-v2";
-import { Link } from "react-router-dom";
-import LoginCart from "../../Auth/Login/LoginCard";
 interface typeCity {
   id: string;
   city: string;
@@ -19,42 +18,64 @@ interface IOrderDetails {
 }
 const ordersSchema = Yup.object({
   first_name: Yup.string()
-    .min(2, "The firstname must be unique and between 2 - 50 characters")
-    // .max(50, "The firstname must be unique and between 1 - 50 characters")
-    .required("The name is not blank"),
-  last_name: Yup.string()
-    .min(2, "The lastname must be unique and between 2 - 50 characters")
-    .required("The name is not blank"),
+    .min(2, "Họ - Tên đệm phải dài từ 2 - 50 ký tự")
+    .max(50, "Họ - Tên đệm phải dài từ 2 - 50 ký tự")
+    .required("Họ - Tên đệm không được trống"),
+  last_name: Yup.string().required("Tên không được trống"),
   shipping_information: Yup.string()
-    .min(5, "The address must be unique and between 5 - 100 characters")
-    .required("The address is not blank"),
+    .min(5, "Địa chỉ phải dài từ 5 - 100 ký tự")
+    .max(100, "Địa chỉ phải dài từ 5 - 100 ký tự")
+    .required("Địa chỉ không được trống"),
   phoneNumber: Yup.string()
     .matches(/^(0|\+84)[3|5|7|8|9][0-9]{8}$/, "Số điện thoại không hợp lệ")
-    .required("The phone is not blank"),
-  email: Yup.string().email("Invalid email").required("The email is not blank"),
-  shipping_city: Yup.string().required("The city is not blank"),
+    .required("Số điện thoại không được trống"),
+  email: Yup.string()
+    .email("Email không hợp lệ")
+    .required("Email không được trống"),
+  shipping_city: Yup.string().required("Thành phố không được trống"),
 });
 const CheckOut = () => {
   // const [isLocation, setIsLocation] = React.useState<string>("");
   // const [isCity, setIsCity] = React.useState<string>("");
   // payment paypal
-
+  const { updateUser } = useUser((state) => state) as any;
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [checkInput, setCheckInput] = useState(0);
   const [sdkReady, setSdkReady] = useState(false);
   const [city, setCity] = React.useState([]);
+  const [accumulated, setAccumulated] = useState<IAccumulated[]>([]);
+  const [pointStatus, setPointStatus] = useState(false);
+  console.log(pointStatus);
   //chứa tên tp vừa chọn
   // const [selectedCity, setSelectedCity] = React.useState<typeCity>();
-  const [openLogin, setOpenLogin] = React.useState(false);
   // hàm để set lại giá trị khi chọn các phương thức thanh toán
   // zustand
   const { items } = useCarts((state) => state) as any;
+  const handlePointStatusChange = (newPointStatus) => {
+    setPointStatus(newPointStatus); // Cập nhật giá trị pointStatus ở component cha
+  };
   const totalOrder = items.reduce((total, item) => {
     return total + item.product.total * item.quantity;
   }, 0);
+
   const userString = localStorage.getItem("user-storage");
   const user = userString ? JSON.parse(userString) : null;
-  const userLogin = user && Object.keys(user.state.users).length !== 0;
+
+  // Tính toán tổng số điểm mới
+  const currentPoints = user.state.users.user?.points;
+  const percent = accumulated[0]?.percent;
+  let orderPoints = 0;
+  if (percent !== undefined) {
+    orderPoints = (totalOrder * percent) / 100;
+    // Sử dụng orderPoints ở đây
+  }
+  // tổng số tiền tích lũy muốn trừ vào tổng hóa đơn
+  const points = user.state.users.user?.points;
+  const newTotalOrder = totalOrder - points;
+  // if (pointStatus === true) {
+  //   console.log(numeral(newTotalOrder).format("0,0").replace(/,/g, "."));
+  // }
+  const newPoints = currentPoints + orderPoints;
   const formik = useFormik({
     initialValues: {
       first_name: "",
@@ -70,30 +91,43 @@ const CheckOut = () => {
     },
     validationSchema: ordersSchema,
     onSubmit: async (values) => {
+      // Cập nhật trường points của khách hàng
+      if (pointStatus === true) {
+        await axiosClient.patch(`/customers/${user.state.users.user._id}`, {
+          points: newPoints - currentPoints,
+        });
+        updateUser({ points: newPoints - currentPoints });
+      } else {
+        await axiosClient.patch(`/customers/${user.state.users.user._id}`, {
+          points: newPoints,
+        });
+        updateUser({ points: newPoints });
+      }
       values.order_details = [];
       values.customer_id = user.state.users.user._id;
-      items.forEach((item) => {
-        const orderDetail: IOrderDetails = {
-          product_id: item.product._id,
-          quantity: item.quantity,
-        };
-        values.order_details.push(orderDetail);
-      });
+      (values.total_money_order =
+        pointStatus === true
+          ? `${numeral(newTotalOrder).format("0,0").replace(/,/g, ".")}`
+          : totalOrder),
+        items.forEach((item) => {
+          const orderDetail: IOrderDetails = {
+            product_id: item.product._id,
+            quantity: item.quantity,
+          };
+          values.order_details.push(orderDetail);
+        });
       await axiosClient
         .post("/orders", values)
         .then(() => {
-          window.alert("Đặt hàng thành công");
           window.localStorage.removeItem("cart-storage");
-          window.location.reload(); // Tải lại trang
+          window.location.replace("/shop");
+          window.alert("Đặt hàng thành công");
         })
         .catch(() => {
           window.alert("Đặt hàng thất bại");
         });
     },
   });
-  const handleLogin = () => {
-    setOpenLogin(true);
-  };
   React.useEffect(() => {
     axios
       .get("https://63528f71a9f3f34c3741633b.mockapi.io/api/v1/users")
@@ -126,7 +160,8 @@ const CheckOut = () => {
       order_details: [] as IOrderDetails[],
       payment_information: paymentMethod,
       payment_status: true,
-      total_money_order: totalOrder,
+      total_money_order:
+        pointStatus === true ? totalOrder - points : totalOrder,
       customer_id: user.state.users.user._id,
     };
 
@@ -140,12 +175,26 @@ const CheckOut = () => {
     });
 
     try {
+      // Cập nhật trường accumulated_money của khách hàng
+      if (pointStatus === true) {
+        await axiosClient.patch(`/customers/${user.state.users.user._id}`, {
+          points: newPoints - currentPoints,
+        });
+        updateUser({ points: newPoints - currentPoints });
+      } else {
+        await axiosClient.patch(`/customers/${user.state.users.user._id}`, {
+          points: newPoints,
+        });
+        updateUser({ points: newPoints });
+      }
       // Send the order data to the server
       await axiosClient.post("/orders", orderData);
       window.alert("Đặt hàng thành công");
-      window.localStorage.removeItem("cart-storage");
-      await new Promise((resolve) => setTimeout(resolve, 5000)); // Đợi 5 giây
-      window.location.reload(); // Tải lại trang
+      // Sau một khoảng thời gian, chuyển hướng đến "/shop"
+      setTimeout(() => {
+        window.localStorage.removeItem("cart-storage");
+        window.location.replace("/shop");
+      }, 4000);
     } catch (error) {
       console.error(error);
       window.alert("Đặt hàng thất bại");
@@ -210,14 +259,26 @@ const CheckOut = () => {
 
         // Thực hiện gửi yêu cầu đặt hàng với dữ liệu đã lưu trữ
         try {
+          // Cập nhật trường accumulated_money của khách hàng
+          if (pointStatus === true) {
+            await axiosClient.patch(`/customers/${user.state.users.user._id}`, {
+              points: newPoints - currentPoints,
+            });
+            updateUser({ points: newPoints - currentPoints });
+          } else {
+            await axiosClient.patch(`/customers/${user.state.users.user._id}`, {
+              points: newPoints,
+            });
+            updateUser({ points: newPoints });
+          }
           await axiosClient.post("/orders", orderData);
           window.alert("Đặt hàng thành công");
-          window.localStorage.removeItem("formValues");
-          window.localStorage.removeItem("cart-storage");
-          window.location.reload(); // Tải lại trang
-          window.location.replace(
-            "http://127.0.0.1:3000/component/checkcart/checkout"
-          );
+          // Sau một khoảng thời gian, chuyển hướng đến "/shop"
+          setTimeout(() => {
+            window.localStorage.removeItem("formValues");
+            window.localStorage.removeItem("cart-storage");
+            window.location.replace("/shop");
+          }, 4000);
         } catch (error) {
           console.error(error);
           window.alert("Đặt hàng thất bại");
@@ -280,7 +341,6 @@ const CheckOut = () => {
         language: "vn",
       }
     );
-    console.log(paymentUrl);
     window.location.replace(paymentUrl.data);
   };
 
@@ -312,6 +372,16 @@ const CheckOut = () => {
     onSuccessVnpay();
   }, []);
 
+  useEffect(() => {
+    axiosClient
+      .get("/accumulateds")
+      .then((response) => {
+        setAccumulated(response.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
   // const handleCityChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
   //   const cityId = event.target.value;
   //   // console.log("cityid", cityId);
@@ -353,7 +423,7 @@ const CheckOut = () => {
               <div className="flex mt-8 gap-2">
                 <h1 className="text-black font-bold">Bạn có tài khoản chưa?</h1>
                 <a
-                  href=""
+                  href="/component/auth/register"
                   className="text-primary_green underline font-semibold"
                 >
                   Đi tới đăng nhập
@@ -655,144 +725,17 @@ const CheckOut = () => {
             </div>
             <div className="md:col-span-4 md:mt-8">
               <div className="mt-4 bg-[#f7f7f7] p-3">
-                <h1 className="text-center py-4 text-[22px] font-bold">
-                  ĐƠN HÀNG CỦA BẠN
-                </h1>
-                <div className="">
-                  <table className="w-[100%] bg-white p-3">
-                    <thead>
-                      <tr className="flex justify-between p-3">
-                        <th>Sản phẩm</th>
-                        <th>Tổng phụ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.length > 0 ? (
-                        items.map((item, index) => {
-                          return (
-                            <tr
-                              className="flex justify-between p-3 border-t-2"
-                              key={index}
-                            >
-                              <td className="flex w-full p-3">
-                                <div className="flex-none w-[100px]">
-                                  <img
-                                    className="w-[90%] bg-cover"
-                                    src={item.product.product_image}
-                                    alt=""
-                                  />
-                                </div>
-                                <div className="ml-2 flex flex-col gap-2">
-                                  <h2 className="font-medium leading-[20px]">
-                                    {item.product.name}
-                                  </h2>
-                                  <div className="leading-[15px] flex flex-col gap-2">
-                                    <p className="text-primary_green text-[13px] ">
-                                      only 4 left
-                                    </p>
-                                    <span className="text-[12px] flex items-center">
-                                      <AiOutlineClose />
-                                      <span className="text-[15px]">
-                                        {item.quantity}
-                                      </span>
-                                    </span>
-                                  </div>
-                                </div>
-                              </td>
-                              <td>
-                                <span>
-                                  {" "}
-                                  {numeral(item.quantity * item.product?.total)
-                                    .format("0,0")
-                                    .replace(/,/g, ".")}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })
-                      ) : (
-                        <Link to="/shop">
-                          <div className="p-3 text-center cursor-pointer">
-                            <p className="py-1 px-4 border bg-primary_green text-white rounded-full">
-                              QUAY VỀ CỬA HÀNG
-                            </p>
-                          </div>
-                        </Link>
-                      )}
-                    </tbody>
-                    <tfoot>
-                      <tr className="flex justify-between p-3  border-t-2">
-                        <th>Tổng phụ</th>
-                        <td>
-                          {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
-                        </td>
-                      </tr>
-                      <tr className="flex justify-between p-3  border-t-2">
-                        <th>Vận chuyển</th>
-                        <td className="flex flex-col ">
-                          <div className="flex justify-end gap-1">
-                            <span>Flat rate (May Vary): R150</span>
-                            <input type="radio" name="name" id="" />
-                          </div>
-                          <div className="flex justify-end gap-1">
-                            <span>Collect at Easy Scape</span>
-                            <input type="radio" name="name" />
-                          </div>
-                        </td>
-                      </tr>
-                      <tr className="flex justify-between p-3  border-t-2">
-                        <th>Tổng</th>
-                        <td className="text-primary_green font-bold">
-                          {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-                <h1 className="mt-4 text-[20px] font-bold text-center">
-                  PayFast
-                </h1>
-                <div className="flex flex-col gap-3">
-                  <p>
-                    <strong>Please note: </strong>
-                    We only ship living products Monday - Thursday (Gauteng) Mon
-                    - Wednesday (out of Gauteng) because we do not want your
-                    plants sitting in warehouses over the weekend.
-                  </p>
-                  {paymentMethod === "paypal" &&
-                  sdkReady &&
-                  checkInput === 0 ? (
-                    <div className="z-0">
-                      <PayPalButton
-                        amount={parseFloat((totalOrder / 20000).toFixed(2))}
-                        // shippingPreference="NO_SHIPPING" // default is "GET_FROM_FILE"
-                        onSuccess={onSuccessPaypal}
-                        onError={(error) => {
-                          alert("Error");
-                          console.log("error", error);
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <button
-                      type="submit"
-                      className={` w-[100%] rounded-[20px] py-3 text-white font-bold hover:bg-opacity-[0.8] ${
-                        items.length !== 0
-                          ? "bg-primary_green"
-                          : " bg-primary_green opacity-50"
-                      }`}
-                      disabled={items.length === 0}
-                      onClick={() => {
-                        if (!userLogin) {
-                          alert("Please login");
-                          handleLogin();
-                        }
-                      }}
-                    >
-                      ĐẶT HÀNG
-                    </button>
-                  )}
-                </div>
+                <CheckOutCard
+                  items={items}
+                  totalOrder={totalOrder}
+                  paymentMethod={paymentMethod}
+                  checkInput={checkInput}
+                  sdkReady={sdkReady}
+                  onSuccessPaypal={onSuccessPaypal}
+                  orderPoints={orderPoints}
+                  points={points}
+                  onPointStatusChange={handlePointStatusChange} // Truyền hàm callback vào component con
+                />
               </div>
             </div>
           </div>
@@ -833,7 +776,6 @@ const CheckOut = () => {
           </div>
         </div>
       </div> */}
-      <LoginCart openLogin={openLogin} setOpenLogin={setOpenLogin} />
     </>
   );
 };

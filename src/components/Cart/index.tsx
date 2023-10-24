@@ -8,6 +8,7 @@ import numeral from "numeral";
 import "./index.css";
 import { IProduct } from "../../interfaces/IProducts";
 import { IRemoveCartItem } from "../../interfaces/IRemoveCartItem";
+import LoginCart from "../Auth/Login/LoginCard";
 interface Props {
   openCart: boolean;
   setOpenCart: React.Dispatch<React.SetStateAction<boolean>>;
@@ -21,7 +22,14 @@ const Cart = (props: Props) => {
   };
   const [products, setProducts] = useState(true);
   const { items, remove } = useCarts((state) => state) as any;
-
+  const [openLogin, setOpenLogin] = useState(false);
+  const userString = localStorage.getItem("user-storage");
+  const user = userString ? JSON.parse(userString) : null;
+  // console.log(user);
+  const userLogin = user && Object.keys(user.state.users).length !== 0;
+  const handleLogin = () => {
+    setOpenLogin(true);
+  };
   const totalOrder = items.reduce((total, item) => {
     return total + item.product.total * item.quantity;
   }, 0);
@@ -90,7 +98,8 @@ const Cart = (props: Props) => {
                                 <span className="text-primary_green">
                                   {numeral(item.product?.total)
                                     .format("0,0")
-                                    .replace(/,/g, ".")}
+                                    .replace(/,/g, ".")}{" "}
+                                  vnđ
                                 </span>
                               </span>
                             </div>
@@ -130,7 +139,7 @@ const Cart = (props: Props) => {
               <div className="flex justify-between">
                 <span className="text-[20px] font-bold">Tổng:</span>
                 <span className="text-[20px]">
-                  {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
+                  {numeral(totalOrder).format("0,0").replace(/,/g, ".")} vnđ
                 </span>
               </div>
               <div className="flex flex-col mt-4 gap-4">
@@ -152,7 +161,10 @@ const Cart = (props: Props) => {
                 >
                   <button
                     onClick={() => {
-                      if (items.length === 0) {
+                      if (!userLogin) {
+                        alert("Vui lòng đăng nhập");
+                        handleLogin();
+                      } else if (items.length === 0) {
                         alert("Vui lòng chọn sản phẩm và thêm vào giỏ hàng");
                       }
                     }}
@@ -188,6 +200,7 @@ const Cart = (props: Props) => {
           </button>
         </div> */}
       </div>
+      <LoginCart openLogin={openLogin} setOpenLogin={setOpenLogin} />
     </div>
   );
 };

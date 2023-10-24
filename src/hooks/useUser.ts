@@ -21,6 +21,17 @@ export const useUser = create(
           type: "addUser",
         });
       },
+      updateUser: (customer: ICustomer) => {
+        const users = { ...get().users }; // Tạo một bản sao của đối tượng users
+        const found = users?.user; // Truy cập trường user từ đối tượng users
+
+        if (found) {
+          found.points = customer.points;
+          return set({ users }, false, { type: "updateUser" });
+        }
+
+        return null; // Hoặc xử lý trường hợp không tìm thấy người dùng
+      },
       initialize: () => {
         const storedToken = localStorage.getItem("access_token");
         const storedRefreshToken = localStorage.getItem("refresh_token");

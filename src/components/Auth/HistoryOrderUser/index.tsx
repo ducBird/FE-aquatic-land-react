@@ -2,21 +2,21 @@ import { useEffect, useState } from "react";
 import userImage from "../../../assets/user.png";
 import { axiosClient } from "../../../libraries/axiosClient";
 import { IOrders } from "../../../interfaces/IOrders";
-
+import numeral from "numeral";
 function HistoryOrderUser() {
   const userString = localStorage.getItem("user-storage");
   const user = userString ? JSON.parse(userString) : null;
   const [historyOrderUser, setHistoryOrderUser] = useState<Array<IOrders>>([]);
   useEffect(() => {
-    if (user.state.users.user._id) {
+    if (user.state.users.user?._id) {
       axiosClient.get("/orders").then((response) => {
         const filteredOrders = response.data.filter(
-          (order) => order.customer_id === user.state.users.user._id
+          (order) => order.customer_id === user.state.users.user?._id
         );
         setHistoryOrderUser(filteredOrders);
       });
     }
-  }, [user.state.users.user._id]);
+  }, [user.state.users.user?._id]);
   console.log(historyOrderUser);
   return (
     <div className="w-full">
@@ -29,7 +29,7 @@ function HistoryOrderUser() {
         {user && (
           <div className="lg:w-[700px] w-full lg:border-gray lg:border-2 text-center p-5 lg:flex lg:flex-col lg:justify-center lg:items-center">
             <h4 className="text-2xl font-bold text-primary_green mb-5">
-              User Profile
+              Thông tin tài khoản
             </h4>
             <div className="w-full flex items-center justify-center mb-3">
               <img
@@ -41,13 +41,13 @@ function HistoryOrderUser() {
             <div className="lg:flex my-2 items-center lg:justify-between">
               <div className="lg:flex-grow lg:flex justify-end mr-2 w-[150px]">
                 <p className="lg:text-right text-left text-primary_green">
-                  First Name:
+                  Họ - tên đệm:
                 </p>
               </div>
               <div className="flex-grow w-[300px]">
                 <input
                   type="text"
-                  value={user.state.users.user.first_name}
+                  value={user.state.users.user?.first_name}
                   className="px-2 py-1 border rounded-md w-full"
                 />
               </div>
@@ -55,13 +55,13 @@ function HistoryOrderUser() {
             <div className="lg:flex my-2 items-center lg:justify-between">
               <div className="lg:flex-grow lg:flex justify-end mr-2 w-[150px]">
                 <p className="lg:text-right text-left text-primary_green">
-                  Last Name:
+                  Tên:
                 </p>
               </div>
               <div className="flex-grow w-[300px]">
                 <input
                   type="text"
-                  value={user.state.users.user.last_name}
+                  value={user.state.users.user?.last_name}
                   className="px-2 py-1 border rounded-md w-full"
                 />
               </div>
@@ -75,10 +75,23 @@ function HistoryOrderUser() {
               <div className="flex-grow w-[300px]">
                 <input
                   type="text"
-                  value={user.state.users.user.email}
+                  value={user.state.users.user?.email}
                   className="px-2 py-1 border rounded-md w-full"
                 />
               </div>
+            </div>
+            <div className="lg:flex my-2 items-center lg:justify-between">
+              <div className="lg:flex-grow lg:flex justify-end mr-2 w-[150px]">
+                <p className="lg:text-right text-left text-primary_green">
+                  Tiền tích lũy:
+                </p>
+              </div>
+              <p className="text-left w-[300px]">
+                {numeral(user.state.users.user?.points)
+                  .format("0,0")
+                  .replace(/,/g, ".")}{" "}
+                vnđ
+              </p>
             </div>
             <button
               className="border border-red-600 px-5 py-2 mt-3 bg-red-600 text-white rounded-md"

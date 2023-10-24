@@ -200,7 +200,7 @@ function ProductVariantOption({ product }: Iprops) {
 
       add(Cart);
     } else {
-      alert("Vui lòng chọn đầy đủ các biến thể");
+      alert("Vui lòng chọn đầy đủ các loại sản phẩm");
     }
   };
 
@@ -217,7 +217,7 @@ function ProductVariantOption({ product }: Iprops) {
       setProductPrice(newPrice);
       setProductDiscount(totalDiscount);
     }
-  }, [selectedOptions]);
+  }, [selectedOptions, calculateProductPrice, newPrice, totalDiscount]);
 
   return (
     <>
@@ -244,7 +244,8 @@ function ProductVariantOption({ product }: Iprops) {
               .replace(/,/g, ".")} */}
             {numeral(productPrice || newPrice)
               .format("0,0")
-              .replace(/,/g, ".")}
+              .replace(/,/g, ".")}{" "}
+            vnđ
           </span>
           <span className={product?.discount ? "pl-2 font-bold" : "hidden"}>
             {product &&
@@ -253,7 +254,8 @@ function ProductVariantOption({ product }: Iprops) {
               //   .replace(/,/g, ".")
               numeral(productDiscount || totalDiscount)
                 .format("0,0")
-                .replace(/,/g, ".")}
+                .replace(/,/g, ".")}{" "}
+            vnđ
           </span>
         </div>
       </div>

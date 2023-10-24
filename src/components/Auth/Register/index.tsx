@@ -99,7 +99,7 @@ const Register = () => {
                     name="email"
                     rules={[
                       { required: true, message: "Chưa nhập thư điện tử!" },
-                      { type: "email", message: "Thư điện tử không đúng" },
+                      { type: "email", message: "Thư điện tử không hợp lệ" },
                     ]}
                     hasFeedback
                   >

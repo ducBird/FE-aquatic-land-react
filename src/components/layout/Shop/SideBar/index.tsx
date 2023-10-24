@@ -135,7 +135,7 @@ function SideBar({
       navigate(`/search-products?name=${formattedValue}`);
       setSearchProducts([]);
     } else {
-      alert("Please enter your information in the search box ");
+      alert("Vui lòng nhập thông tin vào ô tìm kiếm để có thể tìm kiếm");
     }
   };
 

@@ -13,4 +13,5 @@ export interface ICustomer {
   is_delete?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  points: number;
 }

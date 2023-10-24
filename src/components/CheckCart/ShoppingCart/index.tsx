@@ -72,7 +72,7 @@ const ShoppingCart = () => {
 
     // Đặt lại state quantityChange về false sau khi đã cập nhật số lượng
     setQuantityChange(false);
-    alert("Update quantity successfully");
+    alert("Cập nhật giỏ hàng thành công");
   };
   return (
     <>
@@ -126,7 +126,7 @@ const ShoppingCart = () => {
                               <span className="text-[12px] font-semibold">
                                 Giá
                               </span>
-                              <span>{total}</span>
+                              <span>{total} vnđ</span>
                             </div>
                             <div className="flex justify-between border-dashed border-b-[1px] items-center py-2">
                               <span className="text-[12px] font-semibold">
@@ -156,7 +156,8 @@ const ShoppingCart = () => {
                               <span className="">
                                 {numeral(item.quantity * item.product?.total)
                                   .format("0,0")
-                                  .replace(/,/g, ".")}
+                                  .replace(/,/g, ".")}{" "}
+                                vnđ
                               </span>
                             </div>
                           </div>
@@ -232,7 +233,7 @@ const ShoppingCart = () => {
                             </td>
                             <td className="py-[15px] ">
                               <div className="flex justify-between items-center ">
-                                <span>{total}</span>
+                                <span>{total} vnđ</span>
                               </div>
                             </td>
                             <td className="py-[15px] ">
@@ -262,7 +263,8 @@ const ShoppingCart = () => {
                                 <span className="text-primary_green font-semibold">
                                   {numeral(item.quantity * item.product?.total)
                                     .format("0,0")
-                                    .replace(/,/g, ".")}
+                                    .replace(/,/g, ".")}{" "}
+                                  vnđ
                                 </span>
                               </div>
                             </td>
@@ -309,7 +311,7 @@ const ShoppingCart = () => {
                 <div className="flex justify-between mt-3">
                   <span className="text-[16px] font-medium">Tổng phụ</span>
                   <span>
-                    {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
+                    {numeral(totalOrder).format("0,0").replace(/,/g, ".")} vnđ
                   </span>
                 </div>
                 <hr className="my-3" />
@@ -336,7 +338,7 @@ const ShoppingCart = () => {
                   <div className="flex justify-between">
                     <span className="text-[16px] font-medium">Tổng</span>
                     <span className="text-[18px] font-medium text-primary_green">
-                      {numeral(totalOrder).format("0,0").replace(/,/g, ".")}
+                      {numeral(totalOrder).format("0,0").replace(/,/g, ".")} vnđ
                     </span>
                   </div>
                   <h2 className="text-right">(includes R123 VAT)</h2>
