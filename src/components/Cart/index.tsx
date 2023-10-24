@@ -9,6 +9,7 @@ import "./index.css";
 import { IProduct } from "../../interfaces/IProducts";
 import { IRemoveCartItem } from "../../interfaces/IRemoveCartItem";
 import LoginCart from "../Auth/Login/LoginCard";
+import AquaticLogo from "../../assets/ImageAquaticLand.png";
 interface Props {
   openCart: boolean;
   setOpenCart: React.Dispatch<React.SetStateAction<boolean>>;
@@ -48,11 +49,7 @@ const Cart = (props: Props) => {
         } left-full`}
       >
         <div className="py-6 px-3 border border-b flex justify-between items-center">
-          <img
-            className="w-[100px]"
-            src="https://easyscape.co.za/wp-content/uploads/2021/08/EasyScape.svg"
-            alt="image_brand"
-          />
+          <img className="w-[100px]" src={AquaticLogo} alt="image_brand" />
           <h4 className="font-extrabold text-xl">GIỎ HÀNG</h4>
           <div
             className="flex items-center font-medium cursor-pointer gap-1 hover:opacity-[0.7] text-[20px]"
