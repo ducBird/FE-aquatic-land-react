@@ -88,6 +88,8 @@ const CheckOut = () => {
       total_money_order: totalOrder,
       payment_information: paymentMethod,
       customer_id: user.state.users.user ? user.state.users.user._id : "",
+      payment_status: false,
+      status: "",
     },
     validationSchema: ordersSchema,
     onSubmit: async (values) => {
@@ -105,6 +107,7 @@ const CheckOut = () => {
       }
       values.order_details = [];
       values.customer_id = user.state.users.user._id;
+      values.payment_status = false;
       (values.total_money_order =
         pointStatus === true
           ? `${numeral(newTotalOrder).format("0,0").replace(/,/g, ".")}`
@@ -118,7 +121,10 @@ const CheckOut = () => {
         });
       await axiosClient
         .post("/orders", values)
-        .then(() => {
+        .then((response) => {
+          // axiosClient.patch(`/orders/${response.data._id}`, {
+          //   payment_status: false,
+          // });
           window.localStorage.removeItem("cart-storage");
           window.location.replace("/shop");
           window.alert("Đặt hàng thành công");
@@ -163,6 +169,7 @@ const CheckOut = () => {
       total_money_order:
         pointStatus === true ? totalOrder - points : totalOrder,
       customer_id: user.state.users.user._id,
+      status: "WAITING FOR PICKUP",
     };
 
     items.forEach((item) => {
@@ -247,6 +254,7 @@ const CheckOut = () => {
       if (orderData !== null) {
         orderData.customer_id = user.state.users.user._id;
         orderData.payment_status = true;
+        orderData.status = "WAITING FOR PICKUP";
         items.forEach((item) => {
           const orderDetail = {
             product_id: item.product._id,
