@@ -67,6 +67,7 @@ function ProductVariantOption({ product }: Iprops) {
     selectedImage = selectedVariant?.variant_image;
   }
   const priceDiscount = (selectedPrice * (100 - product?.discount)) / 100;
+
   const handleAddToBasketClick = () => {
     // Kiểm tra nếu đã chọn hết các biến thể
     if (selectedValueNames.length === (product?.attributes?.length || 0)) {
