@@ -85,7 +85,6 @@ const CheckOut = () => {
     validationSchema: ordersSchema,
     onSubmit: async (values) => {
       console.log("values", values);
-
       // Cập nhật trường points của khách hàng
       if (pointStatus === true) {
         await axiosClient.patch(`/customers/${users.user._id}`, {
@@ -119,8 +118,8 @@ const CheckOut = () => {
           // axiosClient.patch(`/orders/${response.data._id}`, {
           //   payment_status: false,
           // });
-          window.localStorage.removeItem("cart-storage");
-          window.location.replace("/shop");
+          // window.localStorage.removeItem("cart-storage");
+          // window.location.replace("/shop");
           window.alert("Đặt hàng thành công");
         })
         .catch(() => {

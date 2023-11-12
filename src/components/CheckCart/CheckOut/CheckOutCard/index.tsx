@@ -4,6 +4,7 @@ import { AiOutlineClose } from "react-icons/ai";
 import numeral from "numeral";
 import { Link } from "react-router-dom";
 import { PayPalButton } from "react-paypal-button-v2";
+import Vouchers from "../../../Vouchers";
 type Props = {
   items: IProduct[];
   totalOrder: number;
@@ -28,11 +29,15 @@ function CheckOutCard({
   onPointStatusChange, // Hàm callback để thông báo thay đổi pointStatus
 }: Props) {
   const [pointStatus, setPointStatus] = useState(false);
+  const [showPopupVoucher, setShowPopupVoucher] = useState(false);
   const handleCheckboxClick = () => {
     setPointStatus(!pointStatus); // Đảo ngược giá trị của pointStatus
     onPointStatusChange(!pointStatus); // Gọi hàm callback và truyền giá trị mới
   };
-
+  const closePopupVoucher = () => {
+    setShowPopupVoucher(false);
+  };
+  console.log("items", items);
   return (
     <>
       <h1 className="text-center py-4 text-[22px] font-bold">
@@ -129,6 +134,15 @@ function CheckOutCard({
                 </div>
               </td>
             </tr>
+            <div className="voucher flex justify-between p-3 border-t-2 font-bold">
+              <p>Voucher</p>
+              <p
+                className="text-red-500 cursor-pointer"
+                onClick={() => setShowPopupVoucher(true)}
+              >
+                Chọn voucher
+              </p>
+            </div>
             {points >= 10000 ? (
               <tr className="flex justify-between p-3 border-t-2">
                 <th>Dùng tiền tích lũy</th>
@@ -200,6 +214,11 @@ function CheckOutCard({
           </button>
         )}
       </div>
+      <Vouchers
+        showPopup={showPopupVoucher}
+        closePopupVoucher={closePopupVoucher}
+        totalOrder={totalOrder}
+      />
     </>
   );
 }
