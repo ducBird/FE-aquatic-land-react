@@ -39,13 +39,15 @@ const CheckOut = () => {
   // const [isCity, setIsCity] = React.useState<string>("");
   // payment paypal
   const { updateUser } = useUser((state) => state) as any;
-  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [paymentMethod, setPaymentMethod] = useState("COD");
   const [checkInput, setCheckInput] = useState(0);
   const [sdkReady, setSdkReady] = useState(false);
   const [city, setCity] = React.useState([]);
   const [accumulated, setAccumulated] = useState<IAccumulated[]>([]);
   const [pointStatus, setPointStatus] = useState(false);
-  console.log(pointStatus);
+  // total nhận từ component con checkOutCard
+  const [total, setTotal] = useState<number>(0);
+  console.log("total", total);
   //chứa tên tp vừa chọn
   // const [selectedCity, setSelectedCity] = React.useState<typeCity>();
   // hàm để set lại giá trị khi chọn các phương thức thanh toán
@@ -73,11 +75,12 @@ const CheckOut = () => {
   }
   // tổng số tiền tích lũy muốn trừ vào tổng hóa đơn
   const points = user.state.users.user?.points;
-  const newTotalOrder = totalOrder - points;
-  // if (pointStatus === true) {
-  //   console.log(numeral(newTotalOrder).format("0,0").replace(/,/g, "."));
-  // }
   const newPoints = currentPoints + orderPoints;
+
+  // hàm callback gửi tới component con checkOutCard
+  const handleTotalChange = (newTotal: number) => {
+    setTotal(newTotal);
+  };
   const formik = useFormik({
     initialValues: {
       first_name: "",
@@ -87,7 +90,7 @@ const CheckOut = () => {
       email: "",
       shipping_city: "",
       order_details: [] as IOrderDetails[],
-      total_money_order: totalOrder,
+      total_money_order: total,
       payment_information: paymentMethod,
       customer_id: user.state.users.user ? user.state.users.user._id : "",
       payment_status: false,
@@ -112,25 +115,23 @@ const CheckOut = () => {
       values.customer_id = user.state.users.user._id;
       values.payment_status = false;
       values.status = "WAIT FOR CONFIRMATION";
-      (values.total_money_order =
-        pointStatus === true
-          ? `${numeral(newTotalOrder).format("0,0").replace(/,/g, ".")}`
-          : totalOrder),
-        items.forEach((item) => {
-          const orderDetail: IOrderDetails = {
-            product_id: item.product._id,
-            quantity: item.quantity,
-          };
-          values.order_details.push(orderDetail);
-        });
+      values.total_money_order = total;
+      items.forEach((item) => {
+        console.log("item", item);
+        const orderDetail: IOrderDetails = {
+          product_id: item.product._id,
+          quantity: item.quantity,
+        };
+        values.order_details.push(orderDetail);
+      });
       await axiosClient
         .post("/orders", values)
         .then((response) => {
-          // axiosClient.patch(`/orders/${response.data._id}`, {
-          //   payment_status: false,
-          // });
-          // window.localStorage.removeItem("cart-storage");
-          // window.location.replace("/shop");
+          axiosClient.patch(`/orders/${response.data._id}`, {
+            payment_status: false,
+          });
+          window.localStorage.removeItem("cart-storage");
+          window.location.replace("/shop");
           window.alert("Đặt hàng thành công");
         })
         .catch(() => {
@@ -170,12 +171,11 @@ const CheckOut = () => {
       order_details: [] as IOrderDetails[],
       payment_information: paymentMethod,
       payment_status: true,
-      total_money_order:
-        pointStatus === true ? totalOrder - points : totalOrder,
+      total_money_order: total,
       customer_id: user.state.users.user._id,
       status: "WAITING FOR PICKUP",
     };
-
+    orderData.total_money_order = total;
     items.forEach((item) => {
       // orderData.customer_id = user.state.users.user._id;
       const orderDetail = {
@@ -239,12 +239,15 @@ const CheckOut = () => {
   }, []);
 
   // payment vnpay
+
   const onSuccessVnpay = async () => {
     const queryParams = new URLSearchParams(window.location.search);
     const vnpResponseCode = queryParams.get("vnp_ResponseCode");
     const vnpTransactionStatus = queryParams.get("vnp_TransactionStatus");
     // Kiểm tra xem đã chuyển hướng trở lại từ VNPay hay chưa
     if (vnpResponseCode === "00" && vnpTransactionStatus === "00") {
+      const storedTotal = window.localStorage.getItem("totalForVnpay");
+      console.log("storedTotal", storedTotal);
       // Thực hiện gửi yêu cầu đặt hàng
       // Khôi phục dữ liệu từ Local Storage
       let orderData;
@@ -259,6 +262,7 @@ const CheckOut = () => {
         orderData.customer_id = user.state.users.user._id;
         orderData.payment_status = true;
         orderData.status = "WAITING FOR PICKUP";
+        orderData.total_money_order = storedTotal;
         items.forEach((item) => {
           const orderDetail = {
             product_id: item.product._id,
@@ -290,6 +294,7 @@ const CheckOut = () => {
             window.localStorage.removeItem("formValues");
             window.localStorage.removeItem("cart-storage");
             window.location.replace("/shop");
+            window.localStorage.removeItem("totalForVnpay");
           }, 4000);
         } catch (error) {
           console.error(error);
@@ -310,8 +315,6 @@ const CheckOut = () => {
       shipping_city: "Thành phố",
       phoneNumber: "Số điện thoại",
       email: "Email",
-      order_details: "Thông tin đơn hàng",
-      total_money_order: "Chọn sản phẩm cần mua",
       payment_information: "Thông tin thanh toán",
       customer_id: "tài khoản",
     };
@@ -340,13 +343,15 @@ const CheckOut = () => {
     }
     // Lưu các giá trị vào localStorage trước khi chuyển hướng đến trang thanh toán Vnpay
     localStorage.setItem("formValues", JSON.stringify(formik.values));
+    // Lưu giá trị total vào localStorage
+    window.localStorage.setItem("totalForVnpay", `${total}`);
     const paymentUrl = await axiosClient.post(
       "/payment/create_paymentVnpay_url",
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
         },
-        amount: totalOrder,
+        amount: total,
         bankCode: "NCB",
         orderDescription: "thanh toan don hang test",
         orderType: "other",
@@ -660,13 +665,13 @@ const CheckOut = () => {
                         <div className="flex gap-1 ">
                           <input
                             type="radio"
-                            id="CASH"
+                            id="COD"
                             name="payment_information"
-                            value="CASH"
+                            value="COD"
                             onChange={handlePaymentMethodChange}
-                            checked={paymentMethod === "CASH"}
+                            checked={paymentMethod === "COD"}
                           />
-                          <label htmlFor="CASH" className="cursor-pointer">
+                          <label htmlFor="COD" className="cursor-pointer">
                             Thanh toán bằng tiền mặt
                           </label>
                         </div>
@@ -747,6 +752,7 @@ const CheckOut = () => {
                   orderPoints={orderPoints}
                   points={points}
                   onPointStatusChange={handlePointStatusChange} // Truyền hàm callback vào component con
+                  onTotalChange={handleTotalChange} // Truyền hàm callback
                 />
               </div>
             </div>

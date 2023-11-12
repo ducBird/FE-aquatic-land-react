@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { IProduct } from "../../../../interfaces/IProducts";
 import { AiOutlineClose } from "react-icons/ai";
 import numeral from "numeral";
 import { Link } from "react-router-dom";
 import { PayPalButton } from "react-paypal-button-v2";
 import Vouchers from "../../../Vouchers";
+import { IVouchers } from "../../../../interfaces/IVouchers";
 type Props = {
   items: IProduct[];
   totalOrder: number;
@@ -15,6 +16,7 @@ type Props = {
   orderPoints: number;
   points: number;
   onPointStatusChange: any;
+  onTotalChange: any;
 };
 
 function CheckOutCard({
@@ -27,9 +29,13 @@ function CheckOutCard({
   orderPoints,
   points,
   onPointStatusChange, // Hàm callback để thông báo thay đổi pointStatus
+  onTotalChange, // Nhận hàm callback từ component cha
 }: Props) {
   const [pointStatus, setPointStatus] = useState(false);
   const [showPopupVoucher, setShowPopupVoucher] = useState(false);
+  const [selectedVoucher, setSelectedVoucher] = useState<IVouchers | null>(
+    null
+  );
   const handleCheckboxClick = () => {
     setPointStatus(!pointStatus); // Đảo ngược giá trị của pointStatus
     onPointStatusChange(!pointStatus); // Gọi hàm callback và truyền giá trị mới
@@ -37,7 +43,50 @@ function CheckOutCard({
   const closePopupVoucher = () => {
     setShowPopupVoucher(false);
   };
-  console.log("items", items);
+
+  // hàm callback để truyền tới component con
+  const handleSelectedVoucherChange = (voucher: IVouchers | null) => {
+    setSelectedVoucher(voucher);
+  };
+  let voucherDiscountPrice = 0;
+  if (selectedVoucher?.discountPercentage !== undefined) {
+    voucherDiscountPrice =
+      totalOrder * (selectedVoucher?.discountPercentage / 100);
+  }
+
+  let total = 0;
+  if (selectedVoucher === null && pointStatus === true) {
+    total = totalOrder - points;
+  } else {
+    total = totalOrder;
+  }
+
+  if (selectedVoucher !== null) {
+    if (selectedVoucher.isFreeShipping === true) {
+      if (pointStatus === true) {
+        total = totalOrder - points - selectedVoucher.price;
+      } else {
+        total = totalOrder - selectedVoucher.price;
+      }
+    } else if (selectedVoucher.maxDiscountAmount !== undefined) {
+      if (pointStatus === true) {
+        if (voucherDiscountPrice > selectedVoucher.maxDiscountAmount) {
+          total = totalOrder - points - selectedVoucher.maxDiscountAmount;
+        } else {
+          total = totalOrder - points - voucherDiscountPrice;
+        }
+      } else {
+        if (voucherDiscountPrice > selectedVoucher.maxDiscountAmount) {
+          total = totalOrder - selectedVoucher.maxDiscountAmount;
+        } else {
+          total = totalOrder - voucherDiscountPrice;
+        }
+      }
+    }
+  }
+  useEffect(() => {
+    onTotalChange(total);
+  }, [total, onTotalChange]);
   return (
     <>
       <h1 className="text-center py-4 text-[22px] font-bold">
@@ -58,6 +107,12 @@ function CheckOutCard({
                   (item.product?.variants[0]?.price *
                     (100 - item.product?.discount)) /
                   100;
+                const totalVoucher =
+                  selectedVoucher === null
+                    ? `${numeral(totalOrder)
+                        .format("0,0")
+                        .replace(/,/g, ".")} vnđ`
+                    : "";
                 return (
                   <tr
                     className="flex justify-between p-3 border-t-2"
@@ -146,7 +201,7 @@ function CheckOutCard({
             {points >= 10000 ? (
               <tr className="flex justify-between p-3 border-t-2">
                 <th>Dùng tiền tích lũy</th>
-                <td className="flex flex-col ">
+                <td className="">
                   <div className="flex justify-end gap-1">
                     <span>-</span>
                     <span>
@@ -164,17 +219,31 @@ function CheckOutCard({
             ) : (
               ""
             )}
-
+            <tr className="flex justify-between p-3  border-t-2">
+              <th>Voucher giảm giá</th>
+              <td className="">
+                <div className="flex justify-end gap-1">
+                  <span>-</span>
+                  <span>
+                    {numeral(
+                      selectedVoucher?.isFreeShipping
+                        ? selectedVoucher?.price
+                        : voucherDiscountPrice >
+                          selectedVoucher?.maxDiscountAmount
+                        ? selectedVoucher?.maxDiscountAmount
+                        : voucherDiscountPrice
+                    )
+                      .format("0,0")
+                      .replace(/,/g, ".")}{" "}
+                    vnđ
+                  </span>
+                </div>
+              </td>
+            </tr>
             <tr className="flex justify-between p-3  border-t-2">
               <th>Tổng</th>
               <td className="text-primary_green font-bold">
-                {pointStatus === true
-                  ? `${numeral(totalOrder - points)
-                      .format("0,0")
-                      .replace(/,/g, ".")} vnđ`
-                  : `${numeral(totalOrder)
-                      .format("0,0")
-                      .replace(/,/g, ".")} vnđ`}
+                {numeral(total).format("0,0").replace(/,/g, ".")} vnđ
               </td>
             </tr>
           </tfoot>
@@ -191,9 +260,12 @@ function CheckOutCard({
         {paymentMethod === "paypal" && sdkReady && checkInput === 0 ? (
           <div className="z-0">
             <PayPalButton
-              amount={parseFloat((totalOrder / 20000).toFixed(2))}
+              amount={parseFloat((total / 20000).toFixed(2))}
               // shippingPreference="NO_SHIPPING" // default is "GET_FROM_FILE"
-              onSuccess={onSuccessPaypal}
+              onSuccess={(details, data) => {
+                onSuccessPaypal(details, data);
+                onTotalChange(total);
+              }}
               onError={(error) => {
                 alert("Error");
                 console.log("error", error);
@@ -209,6 +281,7 @@ function CheckOutCard({
                 : " bg-primary_green opacity-50"
             }`}
             disabled={items.length === 0}
+            onClick={() => onTotalChange(total)}
           >
             ĐẶT HÀNG
           </button>
@@ -218,6 +291,7 @@ function CheckOutCard({
         showPopup={showPopupVoucher}
         closePopupVoucher={closePopupVoucher}
         totalOrder={totalOrder}
+        onSelectedVoucherChange={handleSelectedVoucherChange}
       />
     </>
   );

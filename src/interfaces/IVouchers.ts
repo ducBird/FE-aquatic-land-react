@@ -3,7 +3,7 @@ export interface IVouchers {
   name: string;
   price: number;
   discountPercentage: number;
-  maxDiscountAmount: number;
+  maxDiscountAmount: number | undefined;
   minimumOrderAmount: number;
   condition: string;
   startDate: Date;
