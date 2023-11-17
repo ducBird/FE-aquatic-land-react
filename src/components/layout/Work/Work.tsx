@@ -9,30 +9,29 @@ function Work() {
       <div className="flex flex-1 items-center justify-center ml-10">
         <img src={Quality} alt="image" className="w-[60px] h-[60px]" />
         <div className="ml-4">
-          <p className="text-xl font-semibold mb-2">Quallity</p>
+          <p className="text-xl font-semibold mb-2">Chất lượng</p>
           <p className="text-gray-500">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus
-            architecto perspiciatis
+            Chúng tôi chỉ cung cấp các nhãn hiệu và sản phẩm thủy sinh tốt nhất.
           </p>
         </div>
       </div>
       <div className="flex flex-1 items-center justify-center ml-10">
         <img src={Delivery} alt="image" className="w-[60px] h-[60px]" />
         <div className="ml-4">
-          <p className="text-xl font-semibold mb-2">Delivery</p>
+          <p className="text-xl font-semibold mb-2">Vận chuyển</p>
           <p className="text-gray-500">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus
-            architecto perspiciatis
+            Chúng tôi sử dụng phương thức vận chuyển nhanh nhất có thể để sản
+            phẩm được đến tay khách hàng nhanh chóng.
           </p>
         </div>
       </div>
       <div className="flex flex-1 items-center justify-center mx-10">
         <img src={SecurePayments} alt="image" className="w-[60px] h-[60px]" />
         <div className="ml-4">
-          <p className="text-xl font-semibold mb-2">Secure Payments</p>
+          <p className="text-xl font-semibold mb-2">Thanh toán an toàn</p>
           <p className="text-gray-500">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ducimus
-            architecto perspiciatis
+            Chúng tôi cung cấp các tùy chọn thanh toán an toàn như vnpay,
+            paypal.
           </p>
         </div>
       </div>

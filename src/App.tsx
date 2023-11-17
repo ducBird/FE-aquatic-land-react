@@ -16,6 +16,7 @@ import ActivationEmail from "./components/Auth/ActivationEmail";
 import HistoryOrderUser from "./components/Auth/HistoryOrderUser";
 import { useUser } from "./hooks/useUser";
 import WishList from "./components/Wishlist";
+import ProductRewiews from "./components/layout/Shop/ProductReviews";
 function App() {
   const { users, initialize, refreshToken } = useUser((state) => state) as any;
 
@@ -72,6 +73,7 @@ function App() {
             <Route path="/services" element={<Services />} />
             <Route path="/history-order-user" element={<HistoryOrderUser />} />
             <Route path="/wishlist" element={<WishList />} />
+            <Route path="/product-rewiews" element={<ProductRewiews />} />
 
             <Route
               path="/customers/activate/:activation_token"
@@ -81,7 +83,7 @@ function App() {
               path="*"
               element={
                 <main style={{ padding: "1rem" }}>
-                  <p>404 Page not found 😂😂😂</p>
+                  <p>Không tìm thấy trang</p>
                 </main>
               }
             />

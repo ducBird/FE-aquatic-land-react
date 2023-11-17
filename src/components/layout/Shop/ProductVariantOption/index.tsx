@@ -4,11 +4,15 @@ import numeral from "numeral";
 import { IProduct } from "../../../../interfaces/IProducts";
 import { useCarts } from "../../../../hooks/useCart";
 import { CartItems } from "../../../../interfaces/ICartItems";
+import { Rate } from "antd";
+import { useUser } from "../../../../hooks/useUser";
+import { axiosClient } from "../../../../libraries/axiosClient";
 interface Iprops {
   product: IProduct | null;
 }
 
 function ProductVariantOption({ product }: Iprops) {
+  const { users } = useUser((state) => state);
   const { add } = useCarts((state) => state) as any;
 
   const [quantity, setQuantity] = useState<string>("1");
@@ -66,45 +70,109 @@ function ProductVariantOption({ product }: Iprops) {
     }
     selectedImage = selectedVariant?.variant_image;
   }
-  const priceDiscount = (selectedPrice * (100 - product?.discount)) / 100;
+  let priceDiscount = 0;
+  if (product?.variants && product?.variants.length > 0) {
+    priceDiscount = (selectedPrice * (100 - product?.discount)) / 100;
+  } else {
+    priceDiscount = (product?.price * (100 - product?.discount)) / 100;
+  }
 
   const handleAddToBasketClick = () => {
-    // Kiểm tra nếu đã chọn hết các biến thể
-    if (selectedValueNames.length === (product?.attributes?.length || 0)) {
-      const selectedAttributes = product?.attributes?.map(
-        (attribute, index) => ({
-          _id: attribute._id,
-          attribute_name: attribute.attribute_name,
-          value: selectedValueNames[index],
-        })
-      );
+    // kiểm tra sản phẩm có biến thể hay không
+    if (product?.variants && product.variants.length > 0) {
+      // Kiểm tra nếu đã chọn hết các biến thể
+      if (selectedValueNames.length === (product?.attributes?.length || 0)) {
+        const selectedAttributes = product?.attributes?.map(
+          (attribute, index) => ({
+            _id: attribute._id,
+            attribute_name: attribute.attribute_name,
+            value: selectedValueNames[index],
+          })
+        );
 
-      const selectedVariant = product?.variants.find((variant) => {
-        const variantTitle = variant?.title;
-        const joinSelectedValueNames = selectedValueNames.join("/");
-        return joinSelectedValueNames === variantTitle;
-      });
-
-      if (selectedAttributes && selectedVariant) {
-        // Kiểm tra stock trước khi thêm vào giỏ hàng
-        if (selectedVariant.stock === 0) {
-          alert("Hết hàng");
-        } else {
-          const Cart: CartItems = {
-            product: {
-              ...product,
-              attributes: selectedAttributes,
-              variants: [selectedVariant],
-            },
-            quantity: parseInt(quantity, 10),
-          };
-          console.log("Cart", Cart);
-          add(Cart);
+        if (selectedAttributes && selectedVariant) {
+          // Kiểm tra stock trước khi thêm vào giỏ hàng
+          if (selectedVariant.stock === 0) {
+            alert("Hết hàng");
+          } else if (users.user) {
+            //thực hiện patch vào customer
+            const customerId = users.user?._id; // Lấy id của khách hàng đã đăng nhập
+            // Chuẩn bị dữ liệu cần patch (thêm sản phẩm vào customer_cart)
+            const updateData = {
+              $push: {
+                customer_cart: {
+                  product_id: product?._id,
+                  attributes: selectedAttributes,
+                  variants_id: selectedVariant?._id,
+                  quantity: parseInt(quantity, 10),
+                },
+              },
+            };
+            // Gửi yêu cầu PATCH đến máy chủ để cập nhật thông tin giỏ hàng của khách hàng
+            axiosClient
+              .patch(`/customers/${customerId}`, updateData)
+              .then((response) => {
+                window.alert("Thêm giỏ hàng thành công");
+                window.location.reload();
+              })
+              .catch((error) => {
+                window.alert("Thêm giỏ hàng thất bại");
+              });
+          } else {
+            const Cart: CartItems = {
+              product: {
+                ...product,
+                attributes: selectedAttributes,
+                variants: [selectedVariant],
+              },
+              quantity: parseInt(quantity, 10),
+            };
+            add(Cart);
+          }
         }
+      } else {
+        // Hiển thị thông báo hoặc xử lý khác nếu chưa chọn hết biến thể
+        alert("Vui lòng chọn tất cả các biến thể trước khi thêm vào giỏ hàng.");
       }
     } else {
-      // Hiển thị thông báo hoặc xử lý khác nếu chưa chọn hết biến thể
-      alert("Vui lòng chọn tất cả các biến thể trước khi thêm vào giỏ hàng.");
+      // Kiểm tra stock trước khi thêm vào giỏ hàng
+      if (product?.stock === 0) {
+        alert("Hết hàng");
+      } else if (users.user) {
+        //thực hiện patch vào customer
+        const customerId = users.user?._id; // Lấy id của khách hàng đã đăng nhập
+        // Chuẩn bị dữ liệu cần patch (thêm sản phẩm vào customer_cart)
+        const updateData = {
+          $push: {
+            customer_cart: {
+              product_id: product?._id,
+              attributes: [],
+              variants_id: undefined,
+              quantity: parseInt(quantity, 10),
+            },
+          },
+        };
+        // Gửi yêu cầu PATCH đến máy chủ để cập nhật thông tin giỏ hàng của khách hàng
+        axiosClient
+          .patch(`/customers/${customerId}`, updateData)
+          .then((response) => {
+            window.alert("Thêm giỏ hàng thành công");
+            window.location.reload();
+          })
+          .catch((error) => {
+            window.alert("Thêm giỏ hàng thất bại");
+          });
+      } else {
+        const Cart: CartItems = {
+          product: {
+            ...product,
+            attributes: [],
+            variants: [],
+          },
+          quantity: parseInt(quantity, 10),
+        };
+        add(Cart);
+      }
     }
   };
 
@@ -129,9 +197,17 @@ function ProductVariantOption({ product }: Iprops) {
       setSelectedValueNames(updatedValueNames);
     }
   };
-  // console.log("selectedVariants", selectedVariants);
-  console.log("selectedValueNames", selectedValueNames);
-
+  // hàm tính trung bình cộng rating của sản phẩm
+  const averageRating = () => {
+    if (product?.reviews && product.reviews.length > 0) {
+      const sumRating = product.reviews.reduce(
+        (accumulator, review) => accumulator + review.rating,
+        0
+      );
+      return sumRating / product.reviews.length;
+    }
+    return 0; // Trả về 0 nếu không có đánh giá
+  };
   return (
     <div className="lg:flex">
       <div className="lg:flex-1 h-[400px] lg:h-[500px] w-full flex items-center justify-center">
@@ -149,12 +225,28 @@ function ProductVariantOption({ product }: Iprops) {
       <div className="lg:flex-1 ml-10">
         {/* name */}
         <div className="">
-          <h3 className="text-2xl text-black font-semibold">
-            {/* {getProductFullName()} */}
-            {product?.name}
-          </h3>
+          <h3 className="text-2xl text-black font-semibold">{product?.name}</h3>
         </div>
-
+        {/* rating */}
+        {product?.reviews?.length !== undefined &&
+          product?.reviews?.length > 0 && (
+            <div className="flex gap-6">
+              <div className="flex gap-2">
+                <p className="pt-1 underline">
+                  {parseFloat(averageRating().toFixed(1))}
+                </p>
+                <Rate
+                  allowHalf
+                  disabled
+                  value={parseFloat(averageRating().toFixed(1))}
+                />
+              </div>
+              <div className="border-l flex mt-1">
+                <p className="pl-6 underline">{product?.reviews?.length}</p>
+                <p className="ml-2">Đánh giá</p>
+              </div>
+            </div>
+          )}
         {/* price */}
         <div className="mt-4 text-primary_green font-bold text-lg">
           <div className="price text-lg text-primary_green mb-1">
@@ -173,10 +265,22 @@ function ProductVariantOption({ product }: Iprops) {
 
         {/* Stock */}
         {selectedValueNames.length === product?.attributes?.length && (
-          <div className="flex mt-4 items-center gap-2 text-primary_green">
+          <div
+            className={`${
+              product?.variants.length > 0
+                ? selectedStock === 0
+                  ? "text-red-500"
+                  : "text-primary_green"
+                : product?.stock === 0
+                ? "text-red-500"
+                : "text-primary_green"
+            } flex mt-4 items-center gap-2 text-primary_green`}
+          >
             <MdDone size={20} />
-            <p>{selectedStock}</p>
-            <p>in stock</p>
+            <p>
+              {product?.variants.length > 0 ? selectedStock : product?.stock}
+            </p>
+            <p>trong kho</p>
           </div>
         )}
 
@@ -235,6 +339,8 @@ function ProductVariantOption({ product }: Iprops) {
               <button onClick={plusClick}>+</button>
             </div>
           </div>
+
+          {/* price */}
           <div className="variants-price mt-4 flex gap-4">
             <p
               className={` font-bold text-lg ${
@@ -243,11 +349,15 @@ function ProductVariantOption({ product }: Iprops) {
                   : "text-primary_green"
               }`}
             >
-              {selectedValueNames.length === product?.attributes?.length
-                ? `${numeral(selectedPrice)
+              {product?.variants && product?.variants.length > 0
+                ? selectedValueNames.length === product?.attributes?.length
+                  ? `${numeral(selectedPrice)
+                      .format("0,0")
+                      .replace(/,/g, ".")} vnđ`
+                  : ""
+                : `${numeral(product?.price)
                     .format("0,0")
-                    .replace(/,/g, ".")} vnđ`
-                : ""}
+                    .replace(/,/g, ".")} vnđ`}
             </p>
             {product?.discount ? (
               <p className="text-primary_green font-bold text-lg">

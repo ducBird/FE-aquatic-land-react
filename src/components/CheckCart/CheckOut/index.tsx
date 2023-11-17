@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { axiosClient } from "../../../libraries/axiosClient";
@@ -7,9 +6,10 @@ import { useCarts } from "../../../hooks/useCart";
 import { useUser } from "../../../hooks/useUser";
 import CheckOutCard from "./CheckOutCard";
 import { IAccumulated } from "../../../interfaces/Accumulated";
-import numeral from "numeral";
+import { ICustomer } from "../../../interfaces/ICustomers";
 interface IOrderDetails {
   product_id: string;
+  variants_id: string;
   quantity: number;
 }
 
@@ -33,27 +33,34 @@ const CheckOut = () => {
   // payment paypal
   const { users, updateUser } = useUser((state) => state) as any;
   const [paymentMethod, setPaymentMethod] = useState("CASH");
-  const [checkInput, setCheckInput] = useState(0);
   const [sdkReady, setSdkReady] = useState(false);
   const [accumulated, setAccumulated] = useState<IAccumulated[]>([]);
   const [pointStatus, setPointStatus] = useState(false);
+  const [customer, setCustomer] = useState<ICustomer[]>([]);
+
+  console.log("customer", customer);
   // total nhận từ component con checkOutCard
   const [total, setTotal] = useState<number>(0);
-  console.log("total", total);
-  // console.log(pointStatus);
+
   //chứa tên tp vừa chọn
   // const [selectedCity, setSelectedCity] = React.useState<typeCity>();
   // hàm để set lại giá trị khi chọn các phương thức thanh toán
-  // zustand
-  const { items } = useCarts((state) => state) as any;
+
   const handlePointStatusChange = (newPointStatus) => {
     setPointStatus(newPointStatus); // Cập nhật giá trị pointStatus ở component cha
   };
-  const totalOrder = items.reduce((total, item) => {
-    const priceDiscount =
-      (item.product?.variants[0]?.price * (100 - item.product?.discount)) / 100;
-    return total + priceDiscount * item.quantity;
-  }, 0);
+  // tính tổng giỏ hàng
+  let totalOrder = 0;
+  if (customer.customer_cart && customer.customer_cart.length > 0) {
+    totalOrder = customer.customer_cart.reduce((total, item) => {
+      const variantsPrice = item.variants?.price || item.product?.price || 0;
+
+      const priceDiscount =
+        (variantsPrice * (100 - item.product?.discount)) / 100;
+
+      return total + (priceDiscount || 0) * (item.quantity || 0);
+    }, 0);
+  }
 
   // Tính toán tổng số điểm mới
   const currentPoints = users.user?.points;
@@ -76,20 +83,20 @@ const CheckOut = () => {
   // Xử lý Form Thanh Toán
   const formik = useFormik({
     initialValues: {
-      first_name: users.user.first_name,
-      last_name: users.user.last_name,
-      shipping_address: users.user.address,
-      phoneNumber: users.user.phone_number,
+      first_name: users.user?.first_name,
+      last_name: users.user?.last_name,
+      shipping_address: users.user?.address,
+      phoneNumber: users.user?.phone_number,
       order_details: [] as IOrderDetails[],
       total_money_order: total,
       payment_information: paymentMethod,
-      customer_id: users.user ? users.user._id : "",
+      customer_id: users?.user ? users.user?._id : "",
       payment_status: false,
       status: "",
     },
     validationSchema: ordersSchema,
     onSubmit: async (values) => {
-      console.log("values", values);
+      // console.log("values", values);
       // Cập nhật trường points của khách hàng
       if (pointStatus === true) {
         await axiosClient.patch(`/customers/${users.user._id}`, {
@@ -107,14 +114,20 @@ const CheckOut = () => {
       values.payment_status = false;
       values.status = "WAIT FOR CONFIRMATION";
       values.total_money_order = total;
-      items.forEach((item) => {
-        console.log("item", item);
-        const orderDetail: IOrderDetails = {
-          product_id: item.product._id,
-          quantity: item.quantity,
-        };
-        values.order_details.push(orderDetail);
-      });
+      if (
+        users.user &&
+        customer.customer_cart &&
+        customer.customer_cart.length > 0
+      ) {
+        customer.customer_cart.forEach((item) => {
+          const orderDetail: IOrderDetails = {
+            product_id: item?.product._id,
+            variants_id: item?.variants_id,
+            quantity: item?.quantity,
+          };
+          values.order_details.push(orderDetail);
+        });
+      }
       await axiosClient
         .post("/orders", values)
         .then((response) => {
@@ -150,28 +163,33 @@ const CheckOut = () => {
     const orderData = {
       // Populate the order data based on the formik values
       // Assuming you have access to the formik values here
-      first_name: formik.values.first_name,
-      last_name: formik.values.last_name,
+      first_name: formik.values?.first_name,
+      last_name: formik.values?.last_name,
       shipping_address: formik.values.shipping_address,
-      phoneNumber: formik.values.phoneNumber,
+      phoneNumber: formik.values?.phoneNumber,
       order_details: [] as IOrderDetails[],
       payment_information: paymentMethod,
       payment_status: true,
       total_money_order: total,
 
-      customer_id: users.user._id,
+      customer_id: users.user?._id,
       status: "WAITING FOR PICKUP",
     };
     orderData.total_money_order = total;
-    items.forEach((item) => {
-      // orderData.customer_id = users.user._id;
-      const orderDetail = {
-        product_id: item.product._id,
-        quantity: item.quantity,
-      };
-      orderData.order_details.push(orderDetail);
-    });
-
+    if (
+      users.user &&
+      customer.customer_cart &&
+      customer.customer_cart.length > 0
+    ) {
+      customer.customer_cart.forEach((item) => {
+        const orderDetail = {
+          product_id: item.product._id,
+          variants_id: item?.variants_id,
+          quantity: item.quantity,
+        };
+        orderData.order_details.push(orderDetail);
+      });
+    }
     try {
       // Cập nhật trường accumulated_money của khách hàng
       if (pointStatus === true) {
@@ -227,102 +245,103 @@ const CheckOut = () => {
     // Kiểm tra xem đã chuyển hướng trở lại từ VNPay hay chưa
     if (vnpResponseCode === "00" && vnpTransactionStatus === "00") {
       const storedTotal = window.localStorage.getItem("totalForVnpay");
-      console.log("storedTotal", storedTotal);
-      // Thực hiện gửi yêu cầu đặt hàng
-      // Khôi phục dữ liệu từ Local Storage
-      let orderData;
-      try {
-        orderData = JSON.parse(localStorage.getItem("formValues") || "{}");
-      } catch (error) {
-        console.error("Lỗi khi phân tích chuỗi JSON:", error);
-        return;
-      }
+      // Lấy dữ liệu từ localStorage
+      const storedCustomerData = window.localStorage.getItem("customerdata");
 
-      if (orderData !== null) {
-        orderData.customer_id = users.user._id;
-        orderData.payment_status = true;
-        orderData.status = "WAITING FOR PICKUP";
-        orderData.total_money_order = storedTotal;
-        items.forEach((item) => {
+      // Chuyển chuỗi JSON thành đối tượng
+      const storedCustomer: ICustomer[] = storedCustomerData
+        ? JSON.parse(storedCustomerData)
+        : [];
+      console.log("storedCustomer", storedCustomer);
+      const orderData = {
+        first_name: formik.values?.first_name,
+        last_name: formik.values?.last_name,
+        shipping_address: formik.values.shipping_address,
+        phoneNumber: formik.values?.phoneNumber,
+        order_details: [] as IOrderDetails[],
+        payment_information: paymentMethod,
+        payment_status: true,
+        total_money_order: storedTotal,
+
+        customer_id: users.user?._id,
+        status: "WAITING FOR PICKUP",
+      };
+      orderData.total_money_order = storedTotal;
+      orderData.payment_information = "vnpay";
+      if (users.user) {
+        storedCustomer.customer_cart.forEach((item) => {
           const orderDetail = {
-            product_id: item.product._id,
-            quantity: item.quantity,
+            product_id: item?.product._id,
+            variants_id: item?.variants_id,
+            quantity: item?.quantity,
           };
           orderData.order_details.push(orderDetail);
         });
-        // Cập nhật giá trị payment_information thành "vnpay"
-        orderData.payment_information = "vnpay";
-
-        // Thực hiện gửi yêu cầu đặt hàng với dữ liệu đã lưu trữ
-        try {
-          // Cập nhật trường accumulated_money của khách hàng
-          if (pointStatus === true) {
-            await axiosClient.patch(`/customers/${users.user._id}`, {
-              points: newPoints - currentPoints,
-            });
-            updateUser({ points: newPoints - currentPoints });
-          } else {
-            await axiosClient.patch(`/customers/${users.user._id}`, {
-              points: newPoints,
-            });
-            updateUser({ points: newPoints });
-          }
-          await axiosClient.post("/orders", orderData);
-          window.alert("Đặt hàng thành công");
-          // Sau một khoảng thời gian, chuyển hướng đến "/shop"
-          setTimeout(() => {
-            window.localStorage.removeItem("formValues");
-            window.localStorage.removeItem("cart-storage");
-            window.location.replace("/shop");
-            window.localStorage.removeItem("totalForVnpay");
-          }, 4000);
-        } catch (error) {
-          console.error(error);
-          window.alert("Đặt hàng thất bại");
+      }
+      try {
+        // Cập nhật trường accumulated_money của khách hàng
+        if (pointStatus === true) {
+          await axiosClient.patch(`/customers/${users.user._id}`, {
+            points: newPoints - currentPoints,
+          });
+          updateUser({ points: newPoints - currentPoints });
+        } else {
+          await axiosClient.patch(`/customers/${users.user._id}`, {
+            points: newPoints,
+          });
+          updateUser({ points: newPoints });
         }
+        await axiosClient.post("/orders", orderData);
+        window.alert("Đặt hàng thành công");
+        // Sau một khoảng thời gian, chuyển hướng đến "/shop"
+        setTimeout(() => {
+          window.location.replace("/shop");
+          window.localStorage.removeItem("totalForVnpay");
+          window.localStorage.removeItem("customerdata");
+        }, 2000);
+      } catch (error) {
+        console.error(error);
+        window.alert("Đặt hàng thất bại");
       }
     }
   };
 
-  const checkInputData = async () => {
-    let isLogShown = false;
-    const requiredFields: {
-      [key in keyof typeof formik.values]: string;
-    } = {
-      first_name: "Họ",
-      last_name: "Tên",
-      shipping_address: "Địa chỉ",
-      phoneNumber: "Số điện thoại",
-      payment_information: "Thông tin thanh toán",
-      customer_id: "tài khoản",
-    };
+  // const checkInputData = async () => {
+  //   let isLogShown = false;
+  //   const requiredFields: {
+  //     [key in keyof typeof formik.values]: string;
+  //   } = {
+  //     first_name: "Họ",
+  //     last_name: "Tên",
+  //     shipping_address: "Địa chỉ",
+  //     phoneNumber: "Số điện thoại",
+  //     payment_information: "Thông tin thanh toán",
+  //     customer_id: "tài khoản",
+  //     order_details: "sản phẩm",
+  //   };
 
-    const missingFields: string[] = [];
-    for (const field in requiredFields) {
-      if (!formik.values[field]) {
-        missingFields.push(requiredFields[field]);
-      }
-    }
-    setCheckInput(missingFields.length);
-    if (missingFields.length > 0) {
-      if (!isLogShown) {
-        alert(`Vui lòng nhập đầy đủ thông tin ${missingFields.join(", ")}`);
-        isLogShown = true;
-      }
+  //   const missingFields: string[] = [];
+  //   for (const field in requiredFields) {
+  //     if (!formik.values[field]) {
+  //       missingFields.push(requiredFields[field]);
+  //     }
+  //   }
+  //   setCheckInput(missingFields.length);
+  //   if (missingFields.length > 0) {
+  //     if (!isLogShown) {
+  //       alert(`Vui lòng nhập đầy đủ thông tin ${missingFields.join(", ")}`);
+  //       isLogShown = true;
+  //     }
 
-      return false;
-    }
-    return true;
-  };
+  //     return false;
+  //   }
+  //   return true;
+  // };
   const paymentVnpayClick = async () => {
-    const inputValid = await checkInputData();
-    if (inputValid === false) {
-      return;
-    }
-    // Lưu các giá trị vào localStorage trước khi chuyển hướng đến trang thanh toán Vnpay
-    localStorage.setItem("formValues", JSON.stringify(formik.values));
     // Lưu giá trị total vào localStorage
     window.localStorage.setItem("totalForVnpay", `${total}`);
+    // Chuyển đối tượng thành chuỗi JSON và lưu vào localStorage
+    window.localStorage.setItem("customerdata", JSON.stringify(customer));
     const paymentUrl = await axiosClient.post(
       "/payment/create_paymentVnpay_url",
       {
@@ -340,28 +359,28 @@ const CheckOut = () => {
   };
 
   // momo
-  const paymentMoMoClick = async () => {
-    const inputValid = await checkInputData();
-    if (inputValid === false) {
-      return;
-    }
+  // const paymentMoMoClick = async () => {
+  //   const inputValid = await checkInputData();
+  //   if (inputValid === false) {
+  //     return;
+  //   }
 
-    // Lưu các giá trị vào localStorage trước khi gọi endpoint tạo URL thanh toán
-    localStorage.setItem("formValues", JSON.stringify(formik.values));
+  //   // Lưu các giá trị vào localStorage trước khi gọi endpoint tạo URL thanh toán
+  //   localStorage.setItem("formValues", JSON.stringify(formik.values));
 
-    try {
-      const response = await axiosClient.post(
-        "/payment/create_paymentMoMo_url",
-        {}
-      );
-      const payUrl = response.data.payUrl;
-      console.log("res", response);
-      // Chuyển hướng đến URL thanh toán Momo
-      // window.location.replace(payUrl);
-    } catch (error) {
-      console.error("Error creating Momo payment URL: ", error);
-    }
-  };
+  //   try {
+  //     const response = await axiosClient.post(
+  //       "/payment/create_paymentMoMo_url",
+  //       {}
+  //     );
+  //     const payUrl = response.data.payUrl;
+  //     console.log("res", response);
+  //     // Chuyển hướng đến URL thanh toán Momo
+  //     // window.location.replace(payUrl);
+  //   } catch (error) {
+  //     console.error("Error creating Momo payment URL: ", error);
+  //   }
+  // };
 
   useEffect(() => {
     onSuccessVnpay();
@@ -377,7 +396,15 @@ const CheckOut = () => {
         console.log(err);
       });
   }, []);
-
+  useEffect(() => {
+    axiosClient.get("/customers").then((response) => {
+      response.data.find((item) => {
+        if (item?._id === users.user?._id) {
+          setCustomer(item);
+        }
+      });
+    });
+  }, [users.user?._id, total]);
   return (
     <>
       <div className="w-full bg-primary_green lg:h-[75px] lg:p-10 h-auto p-5 text-center">
@@ -386,9 +413,9 @@ const CheckOut = () => {
         </h1>
       </div>
       <form action="" onSubmit={formik.handleSubmit}>
-        <div className="container px-3">
+        <div className="container">
           <div className="md:grid md:grid-cols-12">
-            <div className="md:col-span-8 md:mr-4">
+            <div className="md:col-span-7 md:mr-4">
               <div className="flex mt-8 gap-2">
                 <h1 className="text-black font-bold">Bạn có tài khoản chưa?</h1>
                 <a
@@ -398,15 +425,7 @@ const CheckOut = () => {
                   Đi tới đăng nhập
                 </a>
               </div>
-              <div className="flex mt-8 gap-2">
-                <h1 className="text-black font-bold">Have a coupon?</h1>
-                <a
-                  href=""
-                  className="text-primary_green underline font-semibold"
-                >
-                  Click here to enter your code
-                </a>
-              </div>
+
               <div className="mt-8">
                 <h1 className="text-[22px] font-semibold">
                   THANH TOÁN & VẬN CHUYỂN
@@ -505,20 +524,17 @@ const CheckOut = () => {
                         <div className="flex gap-1 ">
                           <input
                             type="radio"
-                            id="COD"
+                            id="CASH"
                             name="payment_information"
-                            value="COD"
+                            value="CASH"
                             onChange={handlePaymentMethodChange}
-                            checked={paymentMethod === "COD"}
+                            checked={paymentMethod === "CASH"}
                           />
-                          <label htmlFor="COD" className="cursor-pointer">
+                          <label htmlFor="CASH" className="cursor-pointer">
                             Thanh toán bằng tiền mặt
                           </label>
                         </div>
-                        <div
-                          className="flex gap-1"
-                          onMouseDown={checkInputData}
-                        >
+                        <div className="flex gap-1">
                           <input
                             type="radio"
                             id="paypal_payment"
@@ -547,7 +563,7 @@ const CheckOut = () => {
                             Thanh toán bằng vnpay
                           </label>
                         </div>
-                        <div className="flex gap-1" onClick={paymentMoMoClick}>
+                        <div className="flex gap-1">
                           <input
                             type="radio"
                             id="momo"
@@ -563,34 +579,19 @@ const CheckOut = () => {
                       </div>
                     </div>
                   </div>
-                  <h1 className="mt-6 font-bold text-[22px]">
-                    ADDTIONAL INFORMATION
-                  </h1>
-                  <div className="flex flex-col mt-4">
-                    <span className="font-bold mb-2">
-                      Order notes (optional)
-                    </span>
-                    <textarea
-                      className="p-3 outline-none border"
-                      placeholder="Notes about your order, e.g special notes for delivery"
-                      rows={4}
-                      cols={20}
-                    ></textarea>
-                  </div>
                 </div>
               </div>
             </div>
-            <div className="md:col-span-4 md:mt-8">
+            <div className="md:col-span-5 md:mt-8">
               <div className="mt-4 bg-[#f7f7f7] p-3">
                 <CheckOutCard
-                  items={items}
                   totalOrder={totalOrder}
                   paymentMethod={paymentMethod}
-                  checkInput={checkInput}
                   sdkReady={sdkReady}
                   onSuccessPaypal={onSuccessPaypal}
                   orderPoints={orderPoints}
                   points={points}
+                  customer={customer}
                   onPointStatusChange={handlePointStatusChange} // Truyền hàm callback vào component con
                   onTotalChange={handleTotalChange} // Truyền hàm callback
                 />

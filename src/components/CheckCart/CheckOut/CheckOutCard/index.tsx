@@ -1,33 +1,31 @@
-import React, { useEffect, useState } from "react";
-import { IProduct } from "../../../../interfaces/IProducts";
+import { useEffect, useState } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import numeral from "numeral";
 import { Link } from "react-router-dom";
 import { PayPalButton } from "react-paypal-button-v2";
 import Vouchers from "../../../Vouchers";
 import { IVouchers } from "../../../../interfaces/IVouchers";
+import { ICustomer } from "../../../../interfaces/ICustomers";
 type Props = {
-  items: IProduct[];
   totalOrder: number;
   paymentMethod: string;
-  checkInput: number;
   sdkReady: boolean;
   onSuccessPaypal: (details: any, data: any) => void;
   orderPoints: number;
   points: number;
+  customer: ICustomer[];
   onPointStatusChange: any;
   onTotalChange: any;
 };
 
 function CheckOutCard({
-  items,
   totalOrder,
   paymentMethod,
-  checkInput,
   sdkReady,
   onSuccessPaypal,
   orderPoints,
   points,
+  customer,
   onPointStatusChange, // Hàm callback để thông báo thay đổi pointStatus
   onTotalChange, // Nhận hàm callback từ component cha
 }: Props) {
@@ -101,38 +99,35 @@ function CheckOutCard({
             </tr>
           </thead>
           <tbody>
-            {items.length > 0 ? (
-              items.map((item: any, index) => {
+            {customer.customer_cart && customer.customer_cart.length > 0 ? (
+              customer.customer_cart.map((item: any, index) => {
                 const priceDiscount =
-                  (item.product?.variants[0]?.price *
-                    (100 - item.product?.discount)) /
-                  100;
-                const totalVoucher =
-                  selectedVoucher === null
-                    ? `${numeral(totalOrder)
-                        .format("0,0")
-                        .replace(/,/g, ".")} vnđ`
-                    : "";
+                  (item.variants?.price * (100 - item.product?.discount)) / 100;
                 return (
                   <tr
-                    className="flex justify-between p-3 border-t-2"
+                    className="flex justify-between p-2 border-t-2"
                     key={index}
                   >
                     <td className="flex w-full p-3">
                       <div className="flex-none w-[100px]">
                         <img
                           className="w-[90%] bg-cover"
-                          src={item.product.product_image}
+                          src={item.product?.product_image}
                           alt=""
                         />
                       </div>
                       <div className="ml-2 flex flex-col gap-2">
                         <h2 className="font-medium leading-[20px]">
-                          {item.product.name}
+                          {item.product?.name}
+                          {" - "}
+                          {item?.product?.variants &&
+                          item?.product?.variants.length > 0
+                            ? item?.variants?.title
+                            : ""}
                         </h2>
                         <div className="leading-[15px] flex flex-col gap-2">
                           <p className="text-primary_green text-[13px] ">
-                            only 4 left
+                            4 trong kho
                           </p>
                           <span className="text-[12px] flex items-center">
                             <AiOutlineClose />
@@ -141,13 +136,20 @@ function CheckOutCard({
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td className="">
                       <span>
-                        {" "}
-                        {numeral(item.quantity * priceDiscount)
-                          .format("0,0")
-                          .replace(/,/g, ".")}{" "}
-                        vnđ
+                        {item.product?.variants &&
+                        item.product?.variants.length > 0
+                          ? `${numeral(priceDiscount)
+                              .format("0,0")
+                              .replace(/,/g, ".")} vnđ`
+                          : `${numeral(
+                              (item.product?.price *
+                                (100 - item.product?.discount)) /
+                                100
+                            )
+                              .format("0,0")
+                              .replace(/,/g, ".")} vnđ`}
                       </span>
                     </td>
                   </tr>
@@ -178,15 +180,10 @@ function CheckOutCard({
             </tr>
             <tr className="flex justify-between p-3  border-t-2">
               <th>Vận chuyển</th>
-              <td className="flex flex-col ">
-                <div className="flex justify-end gap-1">
-                  <span>Flat rate (May Vary): R150</span>
-                  <input type="checkbox" name="name" id="" />
-                </div>
-                <div className="flex justify-end gap-1">
-                  <span>Collect at Easy Scape</span>
-                  <input type="checkbox" name="name" />
-                </div>
+              <td className="">
+                {/* <p className="justify-end">
+                  {numeral(20000).format("0,0").replace(/,/g, ".")} vnđ
+                </p> */}
               </td>
             </tr>
             <div className="voucher flex justify-between p-3 border-t-2 font-bold">
@@ -219,27 +216,30 @@ function CheckOutCard({
             ) : (
               ""
             )}
-            <tr className="flex justify-between p-3  border-t-2">
-              <th>Voucher giảm giá</th>
-              <td className="">
-                <div className="flex justify-end gap-1">
-                  <span>-</span>
-                  <span>
-                    {numeral(
-                      selectedVoucher?.isFreeShipping
-                        ? selectedVoucher?.price
-                        : voucherDiscountPrice >
-                          selectedVoucher?.maxDiscountAmount
-                        ? selectedVoucher?.maxDiscountAmount
-                        : voucherDiscountPrice
-                    )
-                      .format("0,0")
-                      .replace(/,/g, ".")}{" "}
-                    vnđ
-                  </span>
-                </div>
-              </td>
-            </tr>
+            {selectedVoucher !== null && (
+              <tr className="flex justify-between p-3  border-t-2">
+                <th>Voucher giảm giá</th>
+                <td className="">
+                  <div className="flex justify-end gap-1">
+                    <span>-</span>
+                    <span>
+                      {numeral(
+                        selectedVoucher?.isFreeShipping
+                          ? selectedVoucher?.price
+                          : voucherDiscountPrice >
+                            selectedVoucher?.maxDiscountAmount
+                          ? selectedVoucher?.maxDiscountAmount
+                          : voucherDiscountPrice
+                      )
+                        .format("0,0")
+                        .replace(/,/g, ".")}{" "}
+                      vnđ
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            )}
+
             <tr className="flex justify-between p-3  border-t-2">
               <th>Tổng</th>
               <td className="text-primary_green font-bold">
@@ -249,15 +249,8 @@ function CheckOutCard({
           </tfoot>
         </table>
       </div>
-      <h1 className="mt-4 text-[20px] font-bold text-center">PayFast</h1>
-      <div className="flex flex-col gap-3">
-        <p>
-          <strong>Please note: </strong>
-          We only ship living products Monday - Thursday (Gauteng) Mon -
-          Wednesday (out of Gauteng) because we do not want your plants sitting
-          in warehouses over the weekend.
-        </p>
-        {paymentMethod === "paypal" && sdkReady && checkInput === 0 ? (
+      <div className="flex flex-col gap-3 mt-10">
+        {paymentMethod === "paypal" && sdkReady ? (
           <div className="z-0">
             <PayPalButton
               amount={parseFloat((total / 20000).toFixed(2))}
@@ -275,12 +268,7 @@ function CheckOutCard({
         ) : (
           <button
             type="submit"
-            className={` w-[100%] rounded-[20px] py-3 text-white font-bold hover:bg-opacity-[0.8] ${
-              items.length !== 0
-                ? "bg-primary_green"
-                : " bg-primary_green opacity-50"
-            }`}
-            disabled={items.length === 0}
+            className="w-[100%] rounded-[20px] py-3 text-white font-bold hover:bg-opacity-[0.8] bg-primary_green"
             onClick={() => onTotalChange(total)}
           >
             ĐẶT HÀNG

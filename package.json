@@ -10,12 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.2.6",
     "@babel/runtime": "^7.22.5",
     "antd": "^5.6.0",
     "axios": "^1.4.0",
     "buffer": "^6.0.3",
     "formik": "^2.4.0",
     "framer-motion": "^10.16.4",
+    "moment": "^2.29.4",
     "numeral": "^2.0.6",
     "rc-slider": "^10.2.1",
     "react": "^18.2.0",
