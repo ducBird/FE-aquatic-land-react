@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { axiosClient } from "../../../libraries/axiosClient";
-import { useCarts } from "../../../hooks/useCart";
 import { useUser } from "../../../hooks/useUser";
 import CheckOutCard from "./CheckOutCard";
 import { IAccumulated } from "../../../interfaces/Accumulated";
 import { ICustomer } from "../../../interfaces/ICustomers";
+import PopupVnpayReturnUrl from "./PopupVnpayReturnUrl";
 interface IOrderDetails {
   product_id: string;
   variants_id: string;
@@ -37,11 +37,14 @@ const CheckOut = () => {
   const [accumulated, setAccumulated] = useState<IAccumulated[]>([]);
   const [pointStatus, setPointStatus] = useState(false);
   const [customer, setCustomer] = useState<ICustomer[]>([]);
+  const [showPopupVnpayUrl, setShowPopupVnpayUrl] = useState(false);
 
-  console.log("customer", customer);
   // total nhận từ component con checkOutCard
   const [total, setTotal] = useState<number>(0);
 
+  const closePopupVnpayUrl = () => {
+    setShowPopupVnpayUrl(false);
+  };
   //chứa tên tp vừa chọn
   // const [selectedCity, setSelectedCity] = React.useState<typeCity>();
   // hàm để set lại giá trị khi chọn các phương thức thanh toán
@@ -238,74 +241,23 @@ const CheckOut = () => {
 
   // payment vnpay
 
-  const onSuccessVnpay = async () => {
-    const queryParams = new URLSearchParams(window.location.search);
-    const vnpResponseCode = queryParams.get("vnp_ResponseCode");
-    const vnpTransactionStatus = queryParams.get("vnp_TransactionStatus");
-    // Kiểm tra xem đã chuyển hướng trở lại từ VNPay hay chưa
+  const queryParams = new URLSearchParams(window.location.search);
+  const vnpResponseCode = queryParams.get("vnp_ResponseCode");
+  const vnpTransactionStatus = queryParams.get("vnp_TransactionStatus");
+  const storedTotal = window.localStorage.getItem("totalForVnpay");
+  const vnp_Amount = queryParams.get("vnp_Amount");
+  const vnp_TransactionNo = queryParams.get("vnp_TransactionNo");
+  const vnp_BankCode = queryParams.get("vnp_BankCode");
+  const vnp_OrderInfo = queryParams.get("vnp_OrderInfo");
+  const vnp_PayDate = queryParams.get("vnp_PayDate");
+  useEffect(() => {
     if (vnpResponseCode === "00" && vnpTransactionStatus === "00") {
-      const storedTotal = window.localStorage.getItem("totalForVnpay");
-      // Lấy dữ liệu từ localStorage
-      const storedCustomerData = window.localStorage.getItem("customerdata");
-
-      // Chuyển chuỗi JSON thành đối tượng
-      const storedCustomer: ICustomer[] = storedCustomerData
-        ? JSON.parse(storedCustomerData)
-        : [];
-      console.log("storedCustomer", storedCustomer);
-      const orderData = {
-        first_name: formik.values?.first_name,
-        last_name: formik.values?.last_name,
-        shipping_address: formik.values.shipping_address,
-        phoneNumber: formik.values?.phoneNumber,
-        order_details: [] as IOrderDetails[],
-        payment_information: paymentMethod,
-        payment_status: true,
-        total_money_order: storedTotal,
-
-        customer_id: users.user?._id,
-        status: "WAITING FOR PICKUP",
-      };
-      orderData.total_money_order = storedTotal;
-      orderData.payment_information = "vnpay";
-      if (users.user) {
-        storedCustomer.customer_cart.forEach((item) => {
-          const orderDetail = {
-            product_id: item?.product._id,
-            variants_id: item?.variants_id,
-            quantity: item?.quantity,
-          };
-          orderData.order_details.push(orderDetail);
-        });
-      }
-      try {
-        // Cập nhật trường accumulated_money của khách hàng
-        if (pointStatus === true) {
-          await axiosClient.patch(`/customers/${users.user._id}`, {
-            points: newPoints - currentPoints,
-          });
-          updateUser({ points: newPoints - currentPoints });
-        } else {
-          await axiosClient.patch(`/customers/${users.user._id}`, {
-            points: newPoints,
-          });
-          updateUser({ points: newPoints });
-        }
-        await axiosClient.post("/orders", orderData);
-        window.alert("Đặt hàng thành công");
-        // Sau một khoảng thời gian, chuyển hướng đến "/shop"
-        setTimeout(() => {
-          window.location.replace("/shop");
-          window.localStorage.removeItem("totalForVnpay");
-          window.localStorage.removeItem("customerdata");
-        }, 2000);
-      } catch (error) {
-        console.error(error);
-        window.alert("Đặt hàng thất bại");
-      }
+      // Nếu query parameters đúng, thiết lập giá trị để mở popup
+      setShowPopupVnpayUrl(true);
     }
-  };
+  }, []); // useEffect chỉ chạy một lần sau khi component mount
 
+  console.log("showPopupVnpayUrl", showPopupVnpayUrl);
   // const checkInputData = async () => {
   //   let isLogShown = false;
   //   const requiredFields: {
@@ -350,41 +302,107 @@ const CheckOut = () => {
         },
         amount: total,
         bankCode: "NCB",
-        orderDescription: "thanh toan don hang test",
+        orderDescription: "Thanh toan don hang",
         orderType: "other",
         language: "vn",
       }
     );
-    window.location.replace(paymentUrl.data);
+    console.log("paymentUrl", paymentUrl);
+    // window.location.replace(paymentUrl.data);
   };
 
   // momo
-  // const paymentMoMoClick = async () => {
-  //   const inputValid = await checkInputData();
-  //   if (inputValid === false) {
-  //     return;
-  //   }
+  const paymentMoMoClick = async () => {
+    try {
+      const response = await axiosClient.post(
+        "/payment/create_paymentMoMo_url",
+        {
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          amount: total,
+        }
+      );
 
-  //   // Lưu các giá trị vào localStorage trước khi gọi endpoint tạo URL thanh toán
-  //   localStorage.setItem("formValues", JSON.stringify(formik.values));
+      // Lấy payUrl từ phản hồi của server
+      const payUrl = response.data.payUrl;
 
-  //   try {
-  //     const response = await axiosClient.post(
-  //       "/payment/create_paymentMoMo_url",
-  //       {}
-  //     );
-  //     const payUrl = response.data.payUrl;
-  //     console.log("res", response);
-  //     // Chuyển hướng đến URL thanh toán Momo
-  //     // window.location.replace(payUrl);
-  //   } catch (error) {
-  //     console.error("Error creating Momo payment URL: ", error);
-  //   }
-  // };
+      console.log("payUrl", payUrl);
+
+      // Chuyển hướng đến URL thanh toán Momo
+      // window.location.replace(payUrl);
+    } catch (error) {
+      console.error("Error creating Momo payment URL: ", error);
+    }
+  };
 
   useEffect(() => {
+    const onSuccessVnpay = async () => {
+      // Kiểm tra xem đã chuyển hướng trở lại từ VNPay hay chưa
+      if (vnpResponseCode === "00" && vnpTransactionStatus === "00") {
+        const storedTotal = window.localStorage.getItem("totalForVnpay");
+        // Lấy dữ liệu từ localStorage
+        const storedCustomerData = window.localStorage.getItem("customerdata");
+
+        // Chuyển chuỗi JSON thành đối tượng
+        const storedCustomer: ICustomer[] = storedCustomerData
+          ? JSON.parse(storedCustomerData)
+          : [];
+        console.log("storedCustomer", storedCustomer);
+        const orderData = {
+          first_name: formik.values?.first_name,
+          last_name: formik.values?.last_name,
+          shipping_address: formik.values.shipping_address,
+          phoneNumber: formik.values?.phoneNumber,
+          order_details: [] as IOrderDetails[],
+          payment_information: paymentMethod,
+          payment_status: true,
+          total_money_order: storedTotal,
+
+          customer_id: users.user?._id,
+          status: "WAITING FOR PICKUP",
+        };
+        orderData.total_money_order = storedTotal;
+        orderData.payment_information = "vnpay";
+        if (users.user) {
+          storedCustomer.customer_cart.forEach((item) => {
+            const orderDetail = {
+              product_id: item?.product._id,
+              variants_id: item?.variants_id,
+              quantity: item?.quantity,
+            };
+            orderData.order_details.push(orderDetail);
+          });
+        }
+        try {
+          // Cập nhật trường accumulated_money của khách hàng
+          if (pointStatus === true) {
+            await axiosClient.patch(`/customers/${users.user._id}`, {
+              points: newPoints - currentPoints,
+            });
+            updateUser({ points: newPoints - currentPoints });
+          } else {
+            await axiosClient.patch(`/customers/${users.user._id}`, {
+              points: newPoints,
+            });
+            updateUser({ points: newPoints });
+          }
+          await axiosClient.post("/orders", orderData);
+          window.alert("Đặt hàng thành công");
+          // Sau một khoảng thời gian, chuyển hướng đến "/shop"
+          setTimeout(() => {
+            window.location.replace("/shop");
+            window.localStorage.removeItem("totalForVnpay");
+            window.localStorage.removeItem("customerdata");
+          }, 10000);
+        } catch (error) {
+          console.error(error);
+          window.alert("Đặt hàng thất bại");
+        }
+      }
+    };
     onSuccessVnpay();
-  }, []);
+  }, [vnpResponseCode, vnpTransactionStatus]);
 
   useEffect(() => {
     axiosClient
@@ -563,7 +581,7 @@ const CheckOut = () => {
                             Thanh toán bằng vnpay
                           </label>
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1" onClick={paymentMoMoClick}>
                           <input
                             type="radio"
                             id="momo"
@@ -600,6 +618,18 @@ const CheckOut = () => {
           </div>
         </div>
       </form>
+      <PopupVnpayReturnUrl
+        showPopup={showPopupVnpayUrl}
+        closePopup={closePopupVnpayUrl}
+        storedTotal={storedTotal}
+        vnpResponseCode={vnpResponseCode}
+        vnpTransactionStatus={vnpTransactionStatus}
+        vnp_Amount={vnp_Amount}
+        vnp_TransactionNo={vnp_TransactionNo}
+        vnp_BankCode={vnp_BankCode}
+        vnp_OrderInfo={vnp_OrderInfo}
+        vnp_PayDate={vnp_PayDate}
+      />
     </>
   );
 };

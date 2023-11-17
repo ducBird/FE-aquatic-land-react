@@ -79,6 +79,7 @@ function App() {
               path="/customers/activate/:activation_token"
               element={<ActivationEmail />}
             />
+
             <Route
               path="*"
               element={
