@@ -16,6 +16,8 @@ import ActivationEmail from "./components/Auth/ActivationEmail";
 import HistoryOrderUser from "./components/Auth/HistoryOrderUser";
 import { useUser } from "./hooks/useUser";
 import WishList from "./components/Wishlist";
+import AuthEmail from "./components/Auth/ForgotPassword/AuthEmail";
+import ResetPassword from "./components/Auth/ForgotPassword/ResetPassword";
 import ProductRewiews from "./components/layout/Shop/ProductReviews";
 function App() {
   const { users, initialize, refreshToken } = useUser((state) => state) as any;
@@ -52,6 +54,20 @@ function App() {
         <section style={{ marginTop: "60px" }}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/component/auth/register" element={<Register />} />
+            <Route
+              path="/customers/activate/:activation_token"
+              element={<ActivationEmail />}
+            />
+            <Route
+              path="/component/auth/authentication-email"
+              element={<AuthEmail />}
+            />
+            <Route
+              path="/customers/reset/:verify_token"
+              element={<ResetPassword />}
+            />
+            <Route path="/history-order-user" element={<HistoryOrderUser />} />
             <Route
               path="/component/checkcart/shoppingcart"
               element={<ShoppingCart />}
@@ -60,7 +76,6 @@ function App() {
               path="/component/checkcart/checkout"
               element={<CheckOut />}
             />
-            <Route path="/component/auth/register" element={<Register />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/shop/product/:id" element={<ProductDetail />} />
             <Route path="/product-category/:categoryId" element={<Shop />} />
@@ -71,7 +86,6 @@ function App() {
 
             <Route path="/search-products" element={<Shop />} />
             <Route path="/services" element={<Services />} />
-            <Route path="/history-order-user" element={<HistoryOrderUser />} />
             <Route path="/wishlist" element={<WishList />} />
             <Route path="/product-rewiews" element={<ProductRewiews />} />
 
@@ -90,7 +104,7 @@ function App() {
             />
           </Routes>
         </section>
-        <div className="mt-10">
+        <div className="mt-10 bg-gray-100">
           <Work />
         </div>
         <footer>

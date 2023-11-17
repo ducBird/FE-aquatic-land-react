@@ -257,11 +257,11 @@ const Register = () => {
             <div className="text-center md:mt-[50px] md:p-4">
               <h1 className="text-center font-medium text-[25px]">Đăng nhập</h1>
               <p className="text-gray-700 text-center my-4">
-                Registering for this site allows you to access your order status
-                and history. Just fill in the fields below, and we'll get a new
-                account set up for you in no time. We will only ask you for
-                information necessary to make the purchase process faster and
-                easier.
+                Đăng ký trang web này cho phép bạn truy cập trạng thái và lịch
+                sử đơn hàng của mình. Chỉ cần điền vào các trường bên dưới và
+                chúng tôi sẽ thiết lập tài khoản mới cho bạn ngay lập tức. Chúng
+                tôi sẽ chỉ yêu cầu bạn những thông tin cần thiết để giúp quá
+                trình mua hàng nhanh hơn và dễ dàng hơn.
               </p>
               <button
                 onClick={handleForm}

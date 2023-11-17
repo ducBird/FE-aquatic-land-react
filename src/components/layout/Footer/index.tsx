@@ -131,8 +131,8 @@ const Footer = () => {
               </div>
               <div className="mt-[20px] text-text_gray">
                 <p className="text-center">
-                  Aquaticland là nhà cung cấp thiết bị Aquascaping cao cấp, tiện
-                  lợi và giá cả phải chăng nhất.
+                  Aquatic Land là nhà cung cấp thiết bị thủy sinh cao cấp, giá
+                  cả phải chăng và tiện lợi nhất với người sử dụng.
                 </p>
               </div>
               <div className="flex justify-center gap-4 my-[35px] text-[20px] cursor-pointer">
