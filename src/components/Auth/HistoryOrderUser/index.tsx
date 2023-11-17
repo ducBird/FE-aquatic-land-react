@@ -290,6 +290,14 @@ function HistoryOrderUser() {
                   </Button>
                 </Form.Item>
                 <Button
+                  className="bg-primary_green text-white"
+                  onClick={() => {
+                    window.location.href = "/product-rewiews";
+                  }}
+                >
+                  Đơn mua
+                </Button>
+                <Button
                   danger
                   type="primary"
                   onClick={() => {

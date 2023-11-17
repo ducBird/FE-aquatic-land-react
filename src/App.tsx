@@ -18,6 +18,7 @@ import { useUser } from "./hooks/useUser";
 import WishList from "./components/Wishlist";
 import AuthEmail from "./components/Auth/ForgotPassword/AuthEmail";
 import ResetPassword from "./components/Auth/ForgotPassword/ResetPassword";
+import ProductRewiews from "./components/layout/Shop/ProductReviews";
 function App() {
   const { users, initialize, refreshToken } = useUser((state) => state) as any;
 
@@ -86,12 +87,13 @@ function App() {
             <Route path="/search-products" element={<Shop />} />
             <Route path="/services" element={<Services />} />
             <Route path="/wishlist" element={<WishList />} />
+            <Route path="/product-rewiews" element={<ProductRewiews />} />
 
             <Route
               path="*"
               element={
                 <main style={{ padding: "1rem" }}>
-                  <p>404 Page not found 😂😂😂</p>
+                  <p>Không tìm thấy trang</p>
                 </main>
               }
             />

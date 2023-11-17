@@ -55,7 +55,7 @@ function SideBar({
   const { categoryId } = useParams();
   const { subCategoryId } = useParams();
 
-  const [sliderValue, setSliderValue] = useState([0, 1000000]); // Giá trị ban đầu của thanh trượt là từ 0 đến 100
+  const [sliderValue, setSliderValue] = useState([0, 1500000]); // Giá trị ban đầu của thanh trượt là từ 0 đến 100
   const formattedValue = searchValue.replace(/\s+/g, "+");
   useEffect(() => {
     setCategoryCurrent({ category_id: null, sub_category_id: null });
@@ -395,7 +395,7 @@ function SideBar({
         <div className="slider-container mb-5 px-3">
           <Slider
             min={0}
-            max={1000000}
+            max={1500000}
             value={sliderValue}
             onChange={handleSliderChange}
             range

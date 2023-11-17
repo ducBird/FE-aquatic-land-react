@@ -1,4 +1,3 @@
-import React from "react";
 import { BsFacebook } from "react-icons/bs";
 import { BsCamera } from "react-icons/bs";
 import { HiOutlinePhone } from "react-icons/hi";
@@ -7,12 +6,12 @@ import AquaticLogo from "../../../assets/ImageAquaticLand.png";
 const Footer = () => {
   return (
     <>
-      <div className="container mb-4">
+      <div className="container mb-5">
         <div className="w-full mt-[100px] px-3">
           <div className="md:grid md:grid-cols-12">
             <div className="md:col-span-3">
               <h1 className="text-[20px] font-semibold mb-[15px]">
-                Liên kết nhanh
+                Đường dẫn nhanh
               </h1>
               <ul className="flex flex-col gap-2">
                 <li className="">
@@ -22,7 +21,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <a href="" className="">
-                    Hỏi đáp
+                    Câu hỏi thường gặp
                   </a>
                 </li>
                 <li>
@@ -32,7 +31,7 @@ const Footer = () => {
                 </li>
                 <li>
                   <a href="" className="">
-                    Chính sách đổi trả
+                    Chính sách hoàn trả
                   </a>
                 </li>
                 <li>
@@ -44,32 +43,22 @@ const Footer = () => {
             </div>
             <div className="md:col-span-3">
               <h1 className="text-[20px] font-semibold mb-[15px] mt-[35px] md:mt-0">
-                Menu
+                Điều hướng
               </h1>
               <ul className="flex flex-col gap-2">
                 <li className="">
                   <a href="" className="">
-                    Bể nuôi
+                    Bể cá
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Thực vật
+                    Cây thủy sinh
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Sách / Áp phích
-                  </a>
-                </li>
-                <li>
-                  <a href="" className="">
-                    Lũa
-                  </a>
-                </li>
-                <li>
-                  <a href="" className="">
-                    Nền và Vật liệu lọc
+                    Phân bón
                   </a>
                 </li>
                 <li>
@@ -79,24 +68,34 @@ const Footer = () => {
                 </li>
                 <li>
                   <a href="" className="">
-                    Mã giảm giá
+                    Vật liệu lọc
+                  </a>
+                </li>
+                <li>
+                  <a href="" className="">
+                    Đá trang trí
+                  </a>
+                </li>
+                <li>
+                  <a href="" className="">
+                    Quà tặng
                   </a>
                 </li>
               </ul>
             </div>
             <div className="md:col-span-3">
               <h1 className="text-[20px] font-semibold mb-[15px] mt-[35px] md:mt-0">
-                Thương hiệu
+                Nhãn hiệu
               </h1>
               <ul className="flex flex-col gap-2 text-text_gray">
                 <li className="">
                   <a href="" className="">
-                    Twinstar
+                    ADA
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Strideways
+                    Gex xanh, đỏ
                   </a>
                 </li>
                 <li>
@@ -146,7 +145,7 @@ const Footer = () => {
         </div>
       </div>
       <div className="border-t-2 w-full lg:mb-0 mb-[80px]">
-        <p className="my-[15px] text-center">COPYRIGHT EASYSCAPE 2020 </p>
+        <p className="my-[15px] text-center">COPYRIGHT AQUATICLAND 2023 </p>
       </div>
     </>
   );

@@ -10,4 +10,5 @@ export interface IOrders {
   payment_status?: boolean;
   payment_information?: string;
   order_details?: IOrderDetail[] | undefined;
+  total_money_order: number;
 }

@@ -11,6 +11,7 @@ import {
   WishlistItem,
   useProductWishlist,
 } from "../../../../hooks/useProductWishlist";
+import { Rate } from "antd";
 interface IProps {
   product: IProduct;
 }
@@ -71,6 +72,18 @@ function Product(props: IProps) {
     }
   };
   const favoriteStatus = localStorage.getItem(`favorite_${productItem?._id}`);
+
+  // hàm tính trung bình cộng rating của sản phẩm
+  const averageRating = () => {
+    if (productItem?.reviews && productItem.reviews.length > 0) {
+      const sumRating = productItem.reviews.reduce(
+        (accumulator, review) => accumulator + review.rating,
+        0
+      );
+      return sumRating / productItem.reviews.length;
+    }
+    return 0; // Trả về 0 nếu không có đánh giá
+  };
   useEffect(() => {
     setProductItem(product);
 
@@ -81,7 +94,7 @@ function Product(props: IProps) {
   }, [product, favoriteStatus]);
 
   return (
-    <div className="relative border border-gray-300 rounded-md h-[430px] shadow-md ">
+    <div className="relative border border-gray-300 rounded-md h-[450px] shadow-md ">
       <Link to={link} onClick={() => window.scrollTo(0, 0)}>
         <div>
           <img
@@ -110,7 +123,10 @@ function Product(props: IProps) {
                   {numeral(maxPrice).format("0,0").replace(/,/g, ".")} vnđ
                 </span>
               ) : (
-                ""
+                <span>
+                  {numeral(productItem?.price).format("0,0").replace(/,/g, ".")}{" "}
+                  vnđ
+                </span>
               )}
             </span>
           </div>
@@ -122,6 +138,16 @@ function Product(props: IProps) {
           ) : (
             ""
           )}
+          {productItem?.reviews?.length !== undefined &&
+            productItem?.reviews?.length > 0 && (
+              <div>
+                <Rate
+                  allowHalf
+                  disabled
+                  value={parseFloat(averageRating().toFixed(1))}
+                />
+              </div>
+            )}
         </div>
       </Link>
       <div

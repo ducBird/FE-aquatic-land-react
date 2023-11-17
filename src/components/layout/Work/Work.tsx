@@ -9,29 +9,29 @@ function Work() {
       <div className="w-[405px] h-[100px] my-auto bg-gray-100 flex flex-1 items-center justify-center ml-10">
         <img src={Quality} alt="image" className="w-[60px] h-[60px]" />
         <div className="ml-4">
-          <p className="text-[18px] font-semibold mb-2">Chất lượng</p>
-          <p className="text-gray-500 text-[14px]">
-            Đã thử và khảo sát. Chúng tôi chỉ cung cấp những thương hiệu và sản
-            phẩm tốt nhất.
+          <p className="text-xl font-semibold mb-2">Chất lượng</p>
+          <p className="text-gray-500">
+            Chúng tôi chỉ cung cấp các nhãn hiệu và sản phẩm thủy sinh tốt nhất.
           </p>
         </div>
       </div>
       <div className="w-[405px] h-[100px] my-auto bg-gray-100 flex flex-1 items-center justify-center ml-10">
         <img src={Delivery} alt="image" className="w-[60px] h-[60px]" />
         <div className="ml-4">
-          <p className="text-[18px] font-semibold mb-2">Vận chuyển</p>
-          <p className="text-gray-500 text-[14px]">
-            Chúng tôi có sẵn đội ngũ giao hàng cho mọi nhu cầu giao hàng của
-            mình.
+          <p className="text-xl font-semibold mb-2">Vận chuyển</p>
+          <p className="text-gray-500">
+            Chúng tôi sử dụng phương thức vận chuyển nhanh nhất có thể để sản
+            phẩm được đến tay khách hàng nhanh chóng.
           </p>
         </div>
       </div>
       <div className="w-[405px] h-[100px] my-auto bg-gray-100 flex flex-1 items-center justify-center mx-10">
         <img src={SecurePayments} alt="image" className="w-[60px] h-[60px]" />
         <div className="ml-4">
-          <p className="text-[18px] font-semibold mb-2">Thanh toán an toàn</p>
-          <p className="text-gray-500 text-[14px]">
-            Chúng tôi cung cấp các tùy chọn thanh toán trực tuyến an toàn.
+          <p className="text-xl font-semibold mb-2">Thanh toán an toàn</p>
+          <p className="text-gray-500">
+            Chúng tôi cung cấp các tùy chọn thanh toán an toàn như vnpay,
+            paypal.
           </p>
         </div>
       </div>
