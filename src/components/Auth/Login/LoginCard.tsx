@@ -153,9 +153,13 @@ const LoginCart = (props: Props) => {
                     <span>Nhớ mật khẩu</span>
                   </label>
                 </div>
-                <h2 className="text-[15px] text-primary_green cursor-pointer hover:opacity-[0.7]">
+                <Link
+                  to={"/component/auth/authentication-email"}
+                  onClick={handleLoginClose}
+                  className="text-[15px] text-primary_green cursor-pointer hover:opacity-90"
+                >
                   Quên mật khẩu
-                </h2>
+                </Link>
               </div>
             </Form.Item>
           </Form>

@@ -7,86 +7,86 @@ import AquaticLogo from "../../../assets/ImageAquaticLand.png";
 const Footer = () => {
   return (
     <>
-      <div className="container">
+      <div className="container mb-4">
         <div className="w-full mt-[100px] px-3">
           <div className="md:grid md:grid-cols-12">
             <div className="md:col-span-3">
               <h1 className="text-[20px] font-semibold mb-[15px]">
-                Quick Links
+                Liên kết nhanh
               </h1>
               <ul className="flex flex-col gap-2">
                 <li className="">
                   <a href="" className="">
-                    About Us
+                    Về chúng tôi
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    FAQs
+                    Hỏi đáp
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    My account
+                    Tài khoản
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Return Policy
+                    Chính sách đổi trả
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Cookie Policy
+                    Chính sách cookie
                   </a>
                 </li>
               </ul>
             </div>
             <div className="md:col-span-3">
               <h1 className="text-[20px] font-semibold mb-[15px] mt-[35px] md:mt-0">
-                Navigation
+                Menu
               </h1>
               <ul className="flex flex-col gap-2">
                 <li className="">
                   <a href="" className="">
-                    Aquarium
+                    Bể nuôi
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Aquatic Plants
+                    Thực vật
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Books / Posters
+                    Sách / Áp phích
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Bundles
+                    Lũa
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Fertilisers & Conditioners
+                    Nền và Vật liệu lọc
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Filtration & Media
+                    Lọc
                   </a>
                 </li>
                 <li>
                   <a href="" className="">
-                    Gift Vouchers
+                    Mã giảm giá
                   </a>
                 </li>
               </ul>
             </div>
             <div className="md:col-span-3">
               <h1 className="text-[20px] font-semibold mb-[15px] mt-[35px] md:mt-0">
-                Brands
+                Thương hiệu
               </h1>
               <ul className="flex flex-col gap-2 text-text_gray">
                 <li className="">
@@ -132,8 +132,8 @@ const Footer = () => {
               </div>
               <div className="mt-[20px] text-text_gray">
                 <p className="text-center">
-                  Easy Scape is the most affordable and convenient supplier of
-                  premium, competition grade Aquascaping gear in South Africa.
+                  Aquatic Land là nhà cung cấp thiết bị thủy sinh cao cấp, giá
+                  cả phải chăng và tiện lợi nhất với người sử dụng.
                 </p>
               </div>
               <div className="flex justify-center gap-4 my-[35px] text-[20px] cursor-pointer">
