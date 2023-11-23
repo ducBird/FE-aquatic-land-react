@@ -7,6 +7,7 @@ import { Button, Form, Input, Select, message } from "antd";
 import axios from "axios";
 import { useFormik } from "formik";
 import { useUser } from "../../../hooks/useUser";
+import { Link } from "react-router-dom";
 function HistoryOrderUser() {
   // const userString = localStorage.getItem("user-storage");
   // const user = userString ? JSON.parse(userString) : null;
@@ -268,6 +269,16 @@ function HistoryOrderUser() {
               >
                 <Input />
               </Form.Item>
+
+              {/* Nút đổi mật khẩu */}
+              <div className="flex justify-center items-center">
+                <Link
+                  to={"/customers/auth/change-password"}
+                  className="lg:w-1/3 w-1/2 py-1 mb-[24px] rounded-md bg-primary_green text-white"
+                >
+                  Đổi mật khẩu
+                </Link>
+              </div>
 
               <div className="lg:flex my-2 items-center lg:justify-between">
                 <div className="lg:flex-grow lg:flex justify-end mr-2 w-[150px]">

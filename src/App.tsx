@@ -19,6 +19,7 @@ import WishList from "./components/Wishlist";
 import AuthEmail from "./components/Auth/ForgotPassword/AuthEmail";
 import ResetPassword from "./components/Auth/ForgotPassword/ResetPassword";
 import ProductRewiews from "./components/layout/Shop/ProductReviews";
+import ChangePassword from "./components/Auth/ChangePassword";
 function App() {
   const { users, initialize, refreshToken } = useUser((state) => state) as any;
 
@@ -68,6 +69,10 @@ function App() {
               element={<ResetPassword />}
             />
             <Route path="/history-order-user" element={<HistoryOrderUser />} />
+            <Route
+              path="/customers/auth/change-password"
+              element={<ChangePassword />}
+            />
             <Route
               path="/component/checkcart/shoppingcart"
               element={<ShoppingCart />}
