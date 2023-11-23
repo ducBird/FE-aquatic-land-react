@@ -132,7 +132,9 @@ export default function Header() {
                   </span>
                   <span className="bg-primary_green w-5 h-5 rounded-full flex items-center justify-center ms-[6px]">
                     <span className="text-[10px] leading-3 font-bold text-white">
-                      {quantityCart}
+                      {users?.user && custommer?.customer_cart
+                        ? custommer?.customer_cart.length
+                        : quantityCart}
                     </span>
                   </span>
                 </a>

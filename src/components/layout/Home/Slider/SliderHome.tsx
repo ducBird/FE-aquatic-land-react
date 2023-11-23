@@ -35,7 +35,7 @@ function SliderHome(props: IProductProps) {
               <div className="lg:flex-1 lg:h-full slider__product_image ">
                 <Link to={`/shop/product/${value._id}`}>
                   <img
-                    className="lg:w-full lg:h-full mx-auto object-contain "
+                    className="lg:w-full lg:h-full w-[266px] h-[266px] mx-auto object-contain "
                     src={value.product_image}
                     alt=""
                   />

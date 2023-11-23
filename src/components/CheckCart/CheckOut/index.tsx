@@ -38,7 +38,8 @@ const CheckOut = () => {
   const [pointStatus, setPointStatus] = useState(false);
   const [customer, setCustomer] = useState<ICustomer[]>([]);
   const [showPopupVnpayUrl, setShowPopupVnpayUrl] = useState(false);
-
+  const [checkInput, setCheckInput] = useState(0);
+  const [paymentFunction, setPaymentFunction] = useState();
   // total nhận từ component con checkOutCard
   const [total, setTotal] = useState<number>(0);
 
@@ -46,12 +47,15 @@ const CheckOut = () => {
     setShowPopupVnpayUrl(false);
   };
   //chứa tên tp vừa chọn
-  // const [selectedCity, setSelectedCity] = React.useState<typeCity>();
-  // hàm để set lại giá trị khi chọn các phương thức thanh toán
+  console.log("paymentMethod", paymentMethod);
 
+  // const [selectedCity, setSelectedCity] = React.useState<typeCity>();
+
+  // hàm để set lại giá trị khi chọn các phương thức thanh toán
   const handlePointStatusChange = (newPointStatus) => {
     setPointStatus(newPointStatus); // Cập nhật giá trị pointStatus ở component cha
   };
+
   // tính tổng giỏ hàng
   let totalOrder = 0;
   if (customer.customer_cart && customer.customer_cart.length > 0) {
@@ -147,6 +151,17 @@ const CheckOut = () => {
     },
   });
 
+  // get customer
+  useEffect(() => {
+    axiosClient.get("/customers").then((response) => {
+      response.data.find((item) => {
+        if (item?._id === users.user?._id) {
+          setCustomer(item);
+        }
+      });
+    });
+  }, [users.user?._id]);
+
   useEffect(() => {
     if (!window.paypal) {
       addPaypalScript();
@@ -159,6 +174,13 @@ const CheckOut = () => {
     const selectedPaymentMethod = event.target.value;
     setPaymentMethod(selectedPaymentMethod);
     formik.setFieldValue("payment_information", selectedPaymentMethod);
+
+    // Cập nhật hàm thanh toán tương ứng
+    if (selectedPaymentMethod === "VNPAY") {
+      setPaymentFunction(() => paymentVnpayClick);
+    } else if (selectedPaymentMethod === "MOMO") {
+      setPaymentFunction(() => paymentMoMoClick);
+    }
   };
 
   const onSuccessPaypal = async (details, data) => {
@@ -208,7 +230,7 @@ const CheckOut = () => {
       }
       // Send the order data to the server
       await axiosClient.post("/orders", orderData);
-      window.alert("Đặt hàng thành công");
+      window.alert("Đặt hàng với thanh toán paypal thành công");
       // Sau một khoảng thời gian, chuyển hướng đến "/shop"
       setTimeout(() => {
         window.localStorage.removeItem("cart-storage");
@@ -216,7 +238,7 @@ const CheckOut = () => {
       }, 4000);
     } catch (error) {
       console.error(error);
-      window.alert("Đặt hàng thất bại");
+      window.alert("Đặt hàng với thanh toán paypal thất bại");
     }
     // OPTIONAL: Call your server to save the transaction
     return fetch("/paypal-transaction-complete", {
@@ -242,6 +264,8 @@ const CheckOut = () => {
   // payment vnpay
 
   const queryParams = new URLSearchParams(window.location.search);
+
+  // vnpay
   const vnpResponseCode = queryParams.get("vnp_ResponseCode");
   const vnpTransactionStatus = queryParams.get("vnp_TransactionStatus");
   const storedTotal = window.localStorage.getItem("totalForVnpay");
@@ -250,6 +274,11 @@ const CheckOut = () => {
   const vnp_BankCode = queryParams.get("vnp_BankCode");
   const vnp_OrderInfo = queryParams.get("vnp_OrderInfo");
   const vnp_PayDate = queryParams.get("vnp_PayDate");
+
+  // momo
+  const resultCode = queryParams.get("resultCode");
+  const message = queryParams.get("message");
+  const amount = queryParams.get("amount");
   useEffect(() => {
     if (vnpResponseCode === "00" && vnpTransactionStatus === "00") {
       // Nếu query parameters đúng, thiết lập giá trị để mở popup
@@ -257,7 +286,6 @@ const CheckOut = () => {
     }
   }, []); // useEffect chỉ chạy một lần sau khi component mount
 
-  console.log("showPopupVnpayUrl", showPopupVnpayUrl);
   // const checkInputData = async () => {
   //   let isLogShown = false;
   //   const requiredFields: {
@@ -267,9 +295,6 @@ const CheckOut = () => {
   //     last_name: "Tên",
   //     shipping_address: "Địa chỉ",
   //     phoneNumber: "Số điện thoại",
-  //     payment_information: "Thông tin thanh toán",
-  //     customer_id: "tài khoản",
-  //     order_details: "sản phẩm",
   //   };
 
   //   const missingFields: string[] = [];
@@ -289,8 +314,11 @@ const CheckOut = () => {
   //   }
   //   return true;
   // };
+
+  // onclick vnpay
   const paymentVnpayClick = async () => {
     // Lưu giá trị total vào localStorage
+    localStorage.setItem("formValues", JSON.stringify(formik.values));
     window.localStorage.setItem("totalForVnpay", `${total}`);
     // Chuyển đối tượng thành chuỗi JSON và lưu vào localStorage
     window.localStorage.setItem("customerdata", JSON.stringify(customer));
@@ -307,12 +335,16 @@ const CheckOut = () => {
         language: "vn",
       }
     );
-    console.log("paymentUrl", paymentUrl);
-    // window.location.replace(paymentUrl.data);
+    window.location.replace(paymentUrl.data);
   };
 
-  // momo
+  // onclick momo
+
   const paymentMoMoClick = async () => {
+    // Lưu giá trị total vào localStorage
+    localStorage.setItem("formValues", JSON.stringify(formik.values));
+    // Chuyển đối tượng thành chuỗi JSON và lưu vào localStorage
+    window.localStorage.setItem("customerdata", JSON.stringify(customer));
     try {
       const response = await axiosClient.post(
         "/payment/create_paymentMoMo_url",
@@ -326,46 +358,113 @@ const CheckOut = () => {
 
       // Lấy payUrl từ phản hồi của server
       const payUrl = response.data.payUrl;
-
-      console.log("payUrl", payUrl);
-
       // Chuyển hướng đến URL thanh toán Momo
-      // window.location.replace(payUrl);
+      window.location.replace(payUrl);
     } catch (error) {
-      console.error("Error creating Momo payment URL: ", error);
+      console.error("Lỗi tạo URL thanh toán Momo: ", error);
     }
   };
 
+  // thanh toán vnpay
+  const onSuccessVnpay = async () => {
+    // Kiểm tra xem đã chuyển hướng trở lại từ VNPay hay chưa
+    if (vnpResponseCode === "00" && vnpTransactionStatus === "00") {
+      const storedTotal = window.localStorage.getItem("totalForVnpay");
+      const storedFormValues = window.localStorage.getItem("formValues");
+      const formValues = storedFormValues ? JSON.parse(storedFormValues) : {};
+      // Lấy dữ liệu từ localStorage
+      const storedCustomerData = window.localStorage.getItem("customerdata");
+
+      // Chuyển chuỗi JSON thành đối tượng
+      const storedCustomer: ICustomer[] = storedCustomerData
+        ? JSON.parse(storedCustomerData)
+        : [];
+      const orderData = {
+        first_name: formValues?.first_name,
+        last_name: formValues?.last_name,
+        shipping_address: formValues?.shipping_address,
+        phoneNumber: formValues?.phoneNumber,
+        order_details: [] as IOrderDetails[],
+        payment_information: paymentMethod,
+        payment_status: true,
+        total_money_order: storedTotal,
+        customer_id: users.user?._id,
+        status: "WAITING FOR PICKUP",
+      };
+      orderData.total_money_order = storedTotal;
+      orderData.payment_information = "VNPAY";
+      if (users.user) {
+        storedCustomer.customer_cart.forEach((item) => {
+          const orderDetail = {
+            product_id: item?.product._id,
+            variants_id: item?.variants_id,
+            quantity: item?.quantity,
+          };
+          orderData.order_details.push(orderDetail);
+        });
+      }
+      try {
+        // Cập nhật trường accumulated_money của khách hàng
+        if (pointStatus === true) {
+          await axiosClient.patch(`/customers/${users.user._id}`, {
+            points: newPoints - currentPoints,
+          });
+          updateUser({ points: newPoints - currentPoints });
+        } else {
+          await axiosClient.patch(`/customers/${users.user._id}`, {
+            points: newPoints,
+          });
+          updateUser({ points: newPoints });
+        }
+        await axiosClient.post("/orders", orderData);
+        window.alert("Đặt hàng với thanh toán vnpay thành công");
+        // Sau một khoảng thời gian, chuyển hướng đến "/shop"
+        setTimeout(() => {
+          window.location.replace("/shop");
+          window.localStorage.removeItem("totalForVnpay");
+          window.localStorage.removeItem("customerdata");
+          window.localStorage.removeItem("formValues");
+        }, 10000);
+      } catch (error) {
+        console.error(error);
+        window.alert("Đặt hàng với thanh toán vnpay thất bại");
+      }
+    }
+  };
   useEffect(() => {
-    const onSuccessVnpay = async () => {
-      // Kiểm tra xem đã chuyển hướng trở lại từ VNPay hay chưa
-      if (vnpResponseCode === "00" && vnpTransactionStatus === "00") {
-        const storedTotal = window.localStorage.getItem("totalForVnpay");
-        // Lấy dữ liệu từ localStorage
-        const storedCustomerData = window.localStorage.getItem("customerdata");
+    onSuccessVnpay();
+  }, [vnpResponseCode, vnpTransactionStatus]);
 
-        // Chuyển chuỗi JSON thành đối tượng
-        const storedCustomer: ICustomer[] = storedCustomerData
-          ? JSON.parse(storedCustomerData)
-          : [];
-        console.log("storedCustomer", storedCustomer);
-        const orderData = {
-          first_name: formik.values?.first_name,
-          last_name: formik.values?.last_name,
-          shipping_address: formik.values.shipping_address,
-          phoneNumber: formik.values?.phoneNumber,
-          order_details: [] as IOrderDetails[],
-          payment_information: paymentMethod,
-          payment_status: true,
-          total_money_order: storedTotal,
+  // thanh toán momo
+  const onSuccessMoMo = async () => {
+    // Kiểm tra xem đã chuyển hướng trở lại từ MoMo hay chưa
+    if (resultCode === "0") {
+      const storedFormValues = window.localStorage.getItem("formValues");
+      const formValues = storedFormValues ? JSON.parse(storedFormValues) : {};
+      // Lấy dữ liệu từ localStorage
+      const storedCustomerData = window.localStorage.getItem("customerdata");
 
-          customer_id: users.user?._id,
-          status: "WAITING FOR PICKUP",
-        };
-        orderData.total_money_order = storedTotal;
-        orderData.payment_information = "vnpay";
-        if (users.user) {
-          storedCustomer.customer_cart.forEach((item) => {
+      // Chuyển chuỗi JSON thành đối tượng
+      const storedCustomer: ICustomer[] = storedCustomerData
+        ? JSON.parse(storedCustomerData)
+        : [];
+      const orderData = {
+        first_name: formValues?.first_name,
+        last_name: formValues?.last_name,
+        shipping_address: formValues?.shipping_address,
+        phoneNumber: formValues?.phoneNumber,
+        order_details: [] as IOrderDetails[],
+        payment_information: paymentMethod,
+        payment_status: true,
+        total_money_order: amount,
+        customer_id: users.user?._id,
+        status: "WAITING FOR PICKUP",
+      };
+      orderData.total_money_order = amount;
+      orderData.payment_information = "MOMO";
+      if (users.user) {
+        if (storedCustomer?.customer_cart !== undefined) {
+          storedCustomer?.customer_cart.forEach((item) => {
             const orderDetail = {
               product_id: item?.product._id,
               variants_id: item?.variants_id,
@@ -374,35 +473,37 @@ const CheckOut = () => {
             orderData.order_details.push(orderDetail);
           });
         }
-        try {
-          // Cập nhật trường accumulated_money của khách hàng
-          if (pointStatus === true) {
-            await axiosClient.patch(`/customers/${users.user._id}`, {
-              points: newPoints - currentPoints,
-            });
-            updateUser({ points: newPoints - currentPoints });
-          } else {
-            await axiosClient.patch(`/customers/${users.user._id}`, {
-              points: newPoints,
-            });
-            updateUser({ points: newPoints });
-          }
-          await axiosClient.post("/orders", orderData);
-          window.alert("Đặt hàng thành công");
-          // Sau một khoảng thời gian, chuyển hướng đến "/shop"
-          setTimeout(() => {
-            window.location.replace("/shop");
-            window.localStorage.removeItem("totalForVnpay");
-            window.localStorage.removeItem("customerdata");
-          }, 10000);
-        } catch (error) {
-          console.error(error);
-          window.alert("Đặt hàng thất bại");
-        }
       }
-    };
-    onSuccessVnpay();
-  }, [vnpResponseCode, vnpTransactionStatus]);
+      try {
+        // Cập nhật trường accumulated_money của khách hàng
+        if (pointStatus === true) {
+          await axiosClient.patch(`/customers/${users.user._id}`, {
+            points: newPoints - currentPoints,
+          });
+          updateUser({ points: newPoints - currentPoints });
+        } else {
+          await axiosClient.patch(`/customers/${users.user._id}`, {
+            points: newPoints,
+          });
+          updateUser({ points: newPoints });
+        }
+        await axiosClient.post("/orders", orderData);
+        window.alert("Đặt hàng với thanh toán momo thành công");
+        // Sau một khoảng thời gian, chuyển hướng đến "/shop"
+        setTimeout(() => {
+          window.location.replace("/shop");
+          window.localStorage.removeItem("customerdata");
+          window.localStorage.removeItem("formValues");
+        }, 1000);
+      } catch (error) {
+        console.error(error);
+        window.alert("Đặt hàng với thanh toán momo thất bại");
+      }
+    }
+  };
+  useEffect(() => {
+    onSuccessMoMo();
+  }, [resultCode]);
 
   useEffect(() => {
     axiosClient
@@ -414,15 +515,6 @@ const CheckOut = () => {
         console.log(err);
       });
   }, []);
-  useEffect(() => {
-    axiosClient.get("/customers").then((response) => {
-      response.data.find((item) => {
-        if (item?._id === users.user?._id) {
-          setCustomer(item);
-        }
-      });
-    });
-  }, [users.user?._id, total]);
   return (
     <>
       <div className="w-full bg-primary_green lg:h-[75px] lg:p-10 h-auto p-5 text-center">
@@ -431,7 +523,7 @@ const CheckOut = () => {
         </h1>
       </div>
       <form action="" onSubmit={formik.handleSubmit}>
-        <div className="container">
+        <div className="container lg:px-0 px-10">
           <div className="md:grid md:grid-cols-12">
             <div className="md:col-span-7 md:mr-4">
               <div className="flex mt-8 gap-2">
@@ -557,9 +649,9 @@ const CheckOut = () => {
                             type="radio"
                             id="paypal_payment"
                             name="payment_information"
-                            value="paypal"
+                            value="PAYPAL"
                             onChange={handlePaymentMethodChange}
-                            checked={paymentMethod === "paypal"}
+                            checked={paymentMethod === "PAYPAL"}
                           />
                           <label
                             htmlFor="paypal_payment"
@@ -568,29 +660,29 @@ const CheckOut = () => {
                             Thanh toán bằng paypal
                           </label>
                         </div>
-                        <div className="flex gap-1" onClick={paymentVnpayClick}>
+                        <div className="flex gap-1">
                           <input
                             type="radio"
-                            id="vnpay"
+                            id="VNPAY"
                             name="payment_information"
-                            value="vnpay"
+                            value="VNPAY"
                             onChange={handlePaymentMethodChange}
-                            checked={paymentMethod === "vnpay"}
+                            checked={paymentMethod === "VNPAY"}
                           />
-                          <label htmlFor="vnpay" className="cursor-pointer">
+                          <label htmlFor="VNPAY" className="cursor-pointer">
                             Thanh toán bằng vnpay
                           </label>
                         </div>
-                        <div className="flex gap-1" onClick={paymentMoMoClick}>
+                        <div className="flex gap-1">
                           <input
                             type="radio"
-                            id="momo"
+                            id="MOMO"
                             name="payment_information"
-                            value="momo"
+                            value="MOMO"
                             onChange={handlePaymentMethodChange}
-                            checked={paymentMethod === "momo"}
+                            checked={paymentMethod === "MOMO"}
                           />
-                          <label htmlFor="momo" className="cursor-pointer">
+                          <label htmlFor="MOMO" className="cursor-pointer">
                             Thanh toán bằng momo
                           </label>
                         </div>
@@ -612,6 +704,7 @@ const CheckOut = () => {
                   customer={customer}
                   onPointStatusChange={handlePointStatusChange} // Truyền hàm callback vào component con
                   onTotalChange={handleTotalChange} // Truyền hàm callback
+                  paymentFunction={paymentFunction} // Truyền hàm thanh toán qua prop
                 />
               </div>
             </div>

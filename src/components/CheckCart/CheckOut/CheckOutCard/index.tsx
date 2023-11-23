@@ -16,6 +16,7 @@ type Props = {
   customer: ICustomer[];
   onPointStatusChange: any;
   onTotalChange: any;
+  paymentFunction: any;
 };
 
 function CheckOutCard({
@@ -28,6 +29,7 @@ function CheckOutCard({
   customer,
   onPointStatusChange, // Hàm callback để thông báo thay đổi pointStatus
   onTotalChange, // Nhận hàm callback từ component cha
+  paymentFunction,
 }: Props) {
   const [pointStatus, setPointStatus] = useState(false);
   const [showPopupVoucher, setShowPopupVoucher] = useState(false);
@@ -85,6 +87,7 @@ function CheckOutCard({
   useEffect(() => {
     onTotalChange(total);
   }, [total, onTotalChange]);
+
   return (
     <>
       <h1 className="text-center py-4 text-[22px] font-bold">
@@ -267,9 +270,11 @@ function CheckOutCard({
           </div>
         ) : (
           <button
-            type="submit"
+            type={paymentMethod === "CASH" ? "submit" : "button"}
             className="w-[100%] rounded-[20px] py-3 text-white font-bold hover:bg-opacity-[0.8] bg-primary_green"
-            onClick={() => onTotalChange(total)}
+            onClick={() => {
+              onTotalChange(total), paymentFunction();
+            }}
           >
             ĐẶT HÀNG
           </button>
